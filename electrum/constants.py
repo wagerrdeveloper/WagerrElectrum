@@ -86,8 +86,8 @@ class BitcoinTestnet(AbstractNet):
 
     TESTNET = True
     WIF_PREFIX = 0xb1
-    ADDRTYPE_P2PKH = 111
-    ADDRTYPE_P2SH = 196
+    ADDRTYPE_P2PKH = 65
+    ADDRTYPE_P2SH = 125
     SEGWIT_HRP = "tb"
     GENESIS = "00000fdc268f54ff1368703792dc046b1356e60914c2b5b6348032144bcb2de5"
     DEFAULT_PORTS = {'t': '51001', 's': '51002'}
