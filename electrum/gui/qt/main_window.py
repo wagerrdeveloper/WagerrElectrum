@@ -45,7 +45,7 @@ from PyQt5.QtWidgets import (QMessageBox, QComboBox, QSystemTrayIcon, QTabWidget
                              QVBoxLayout, QGridLayout, QLineEdit, QTreeWidgetItem,
                              QHBoxLayout, QPushButton, QScrollArea, QTextEdit,
                              QShortcut, QMainWindow, QCompleter, QInputDialog,
-                             QWidget, QMenu, QSizePolicy, QStatusBar, QListView)
+                             QWidget, QMenu, QSizePolicy, QStatusBar, QListView,QSpacerItem, QSizePolicy)
 
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
@@ -95,10 +95,9 @@ from electrum.bet import PeerlessBet
 class EventListView(QListView):
 
     def __init__(self, parent):
-        #super(EventListView, self).__init__(parent)
         super().__init__(parent)
         self.parent = parent
-        sports = ["All Events", "Football", "Baseball", "Basketball", "Hockey", "Soccer"
+        sports = ["All Events", "Football", "Baseball", "Basketball", "Hockey", "Soccer",
                     "MMA", "Aussie Rules", "Cricket", "Rugby Union", "Rugby League"]
         model = QStandardItemModel(self)
         for s in sports:
@@ -109,7 +108,85 @@ class EventListView(QListView):
     def item_changed(self, idx):
         sport = self.model().itemFromIndex(idx)
         print("Selected Sport : ", sport.text())
-        self.parent.do_bet()
+        self.update(sport.text())
+
+    def update(self,text):
+        data=self.parent.events_data
+        self.vbox= QVBoxLayout()
+        for x in data:
+            if x["sport"]==text:
+                self.cw=EventWidget()
+                self.cw.setdata(x)
+                self.cw.setFixedHeight(100)
+
+                self.vbox.addWidget(self.cw)
+        self.parent.hbox.addLayout(self.vbox)
+
+class EventWidget(QWidget):
+    def __init__(self, parent=None):
+        QWidget.__init__(self, parent=parent)
+        self.grid=QGridLayout()
+        # vspacer = QSpacerItem(QSizePolicy.Minimum,QSizePolicy.Expanding)
+        # self.grid.addItem(vspacer,4, 0, 1, -1)
+
+        # hspacer = QSpacerItem(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        # self.grid.addItem(hspacer, 0,3, -1, 1)
+        self.grid.setContentsMargins(0,0,0,0)
+        
+    def buttonClicked1(self):
+        print("button clicked for item : ",self.button1.text())
+    def buttonClicked2(self):
+        print("button clicked for item : ",self.button2.text())
+    def buttonClicked3(self):
+        print("button clicked for item : ",self.button3.text())
+
+    def setdata(self,obj):
+        self.label1=QLabel(obj["tournament"])
+        self.label2=QLabel(str("Event Id ("+str(obj["event_id"])+")"))
+        self.label3=QLabel("  Monday 12 Dec 2019  ")
+        self.label4=QLabel("   Money Line  ")
+        self.label11=QLabel("NA")
+        self.label101=QLabel("NA")
+        
+
+        self.label5=QLabel("Home Team")
+        self.label6=QLabel("Away Team")
+        self.label7=QLabel("Draw")
+        self.label12=QLabel("Spread")
+        self.label13=QLabel("Total")
+        
+
+        # self.label1.setFixedHeight(10)
+        # self.label2.setFixedHeight(10)
+        # self.label3.setFixedHeight(10)
+        # self.label4.setFixedHeight(10)
+
+        self.button1 = QPushButton("1.2")
+        self.button2 = QPushButton("1.4")
+        self.button3 = QPushButton("2.6")
+        self.grid.addWidget(self.label1,0,0)
+        self.grid.addWidget(self.label2,0,1)
+        self.grid.addWidget(self.label3,0,2)
+
+        self.grid.addWidget(self.label4,1,1)
+        self.grid.addWidget(self.label12,1,2)
+        self.grid.addWidget(self.label13,1,3)
+
+        self.grid.addWidget(self.label5,2,0)
+        self.grid.addWidget(self.button1,2,1)
+        self.grid.addWidget(self.label101,2,2)
+        self.grid.addWidget(self.label11,2,3)
+
+
+        self.grid.addWidget(self.label6,3,0)
+        self.grid.addWidget(self.button2,3,1)
+
+        self.grid.addWidget(self.label7,4,0)
+        self.grid.addWidget(self.button3,4,1)
+        self.button1.clicked.connect(self.buttonClicked1)
+        self.button2.clicked.connect(self.buttonClicked2)
+        self.button3.clicked.connect(self.buttonClicked3)
+        self.setLayout(self.grid)
 
 class StatusBarButton(QPushButton):
     def __init__(self, icon, tooltip, func):
@@ -148,6 +225,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.gui_object = gui_object
         self.config = config = gui_object.config  # type: SimpleConfig
         self.gui_thread = gui_object.gui_thread
+        self.hbox=QHBoxLayout()
 
         self.setup_exception_hook()
 
@@ -1515,25 +1593,12 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         # # self.feerate_e.textChanged.connect(entry_changed)
 
         self.betting_grid = grid = QGridLayout()
-        #grid.setSpacing(8)
-        #grid.setColumnStretch(3, 1)
 
         self.events_list = EventListView(self)
-
-        # layout
-        vbox_g = QVBoxLayout()
-        vbox_g.addLayout(grid)
-        vbox_g.addStretch()
-
-        hbox = QHBoxLayout()
-        hbox.addLayout(vbox_g)
-
-        w = QWidget()
-        vbox = QVBoxLayout(w)
-        vbox.addLayout(vbox_g)
-        vbox.addStretch(1)
-        vbox.addWidget(self.events_list)
-        #vbox.setStretchFactor(self.events_list, 1000)
+        self.events_list.setFixedWidth(150)
+        w =  QWidget()
+        self.hbox.addWidget(self.events_list)
+        w.setLayout(self.hbox)
 
         run_hook('create_betting_tab', grid)
         return w
@@ -1739,7 +1804,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         amount = 1
         pb = PeerlessBet(eventId, outcome)
         opCode = "420103026e440a01"
-        if not(PeerlessBet.ToOpCode(pb,opCode)) :
+        unhexOpCode = bytes.fromhex(opCode).decode('utf-8')
+        print('unhexed : ', unhexOpCode)
+        if not(PeerlessBet.ToOpCode(pb,unhexOpCode)) :
             raise Exception('Error converting PeerlessBet to opcode')
         print('read_bet_tab opCode:',opCode)
         outputs = [TxOutput(bitcoin.TYPE_BET, opCode, amount)]
