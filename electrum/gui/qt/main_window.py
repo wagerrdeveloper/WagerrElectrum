@@ -45,7 +45,7 @@ from PyQt5.QtWidgets import (QMessageBox, QComboBox, QSystemTrayIcon, QTabWidget
                              QVBoxLayout, QGridLayout, QLineEdit, QTreeWidgetItem,
                              QHBoxLayout, QPushButton, QScrollArea, QTextEdit,
                              QShortcut, QMainWindow, QCompleter, QInputDialog,
-                             QWidget, QMenu, QSizePolicy, QStatusBar, QListView,QSpacerItem, QSizePolicy)
+                             QWidget, QMenu, QSizePolicy, QStatusBar, QListView,QSpacerItem, QSizePolicy,QListWidget,QListWidgetItem)
 
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
@@ -112,25 +112,22 @@ class EventListView(QListView):
 
     def update(self,text):
         data=self.parent.events_data
-        self.vbox= QVBoxLayout()
+        
         for x in data:
             if x["sport"]==text:
                 self.cw=EventWidget()
                 self.cw.setdata(x)
                 self.cw.setFixedHeight(100)
-
-                self.vbox.addWidget(self.cw)
-        self.parent.hbox.addLayout(self.vbox)
-
+                myQListWidgetItem = QListWidgetItem(self.parent.myQListWidget)
+                myQListWidgetItem.setSizeHint(self.cw.sizeHint())
+                self.parent.myQListWidget.addItem(myQListWidgetItem)
+                self.parent.myQListWidget.setItemWidget(myQListWidgetItem, self.cw)
+        self.parent.hbox_betting.addWidget(self.parent.myQListWidget)
+        
 class EventWidget(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent=parent)
         self.grid=QGridLayout()
-        # vspacer = QSpacerItem(QSizePolicy.Minimum,QSizePolicy.Expanding)
-        # self.grid.addItem(vspacer,4, 0, 1, -1)
-
-        # hspacer = QSpacerItem(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        # self.grid.addItem(hspacer, 0,3, -1, 1)
         self.grid.setContentsMargins(0,0,0,0)
         
     def buttonClicked1(self):
@@ -1591,14 +1588,16 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         # self.betting_amount_e.textChanged.connect(entry_changed)
         # # self.fee_e.textChanged.connect(entry_changed)
         # # self.feerate_e.textChanged.connect(entry_changed)
-
+        self.hbox_betting=QHBoxLayout()
+        self.myQListWidget = QListWidget()
+        self.myQListWidget.setFixedWidth(500)
         self.betting_grid = grid = QGridLayout()
 
         self.events_list = EventListView(self)
         self.events_list.setFixedWidth(150)
         w =  QWidget()
-        self.hbox.addWidget(self.events_list)
-        w.setLayout(self.hbox)
+        self.hbox_betting.addWidget(self.events_list)
+        w.setLayout(self.hbox_betting)
 
         run_hook('create_betting_tab', grid)
         return w
