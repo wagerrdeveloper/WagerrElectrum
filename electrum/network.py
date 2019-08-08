@@ -1033,6 +1033,11 @@ class Network(Logger):
 
     @best_effort_reliable
     @catch_server_exceptions
+    async def get_events_list(self, timeout=None) -> str:
+        return await self.interface.session.send_request('blockchain.event.list', timeout=timeout)
+
+    @best_effort_reliable
+    @catch_server_exceptions
     async def get_history_for_scripthash(self, sh: str) -> List[dict]:
         if not is_hash256_str(sh):
             raise Exception(f"{repr(sh)} is not a scripthash")

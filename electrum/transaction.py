@@ -35,7 +35,7 @@ from typing import (Sequence, Union, NamedTuple, Tuple, Optional, Iterable,
 
 from . import ecc, bitcoin, constants, segwit_addr
 from .util import profiler, to_bytes, bh2u, bfh
-from .bitcoin import (TYPE_ADDRESS, TYPE_PUBKEY, TYPE_SCRIPT, hash_160,
+from .bitcoin import (TYPE_ADDRESS, TYPE_PUBKEY, TYPE_SCRIPT, TYPE_BET, hash_160,
                       hash160_to_p2sh, hash160_to_p2pkh, hash_to_segwit_addr,
                       hash_encode, var_int, TOTAL_COIN_SUPPLY_LIMIT_IN_BTC, COIN,
                       push_script, int_to_hex, push_script, b58_address_to_hash160,
@@ -734,6 +734,8 @@ class Transaction:
             return bitcoin.address_to_script(addr)
         elif output_type == TYPE_PUBKEY:
             return bitcoin.public_key_to_p2pk_script(addr)
+        elif output_type == TYPE_BET:
+            return bitcoin.address_to_bet_script(addr)
         else:
             raise TypeError('Unknown output type')
 

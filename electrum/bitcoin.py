@@ -48,6 +48,7 @@ TOTAL_COIN_SUPPLY_LIMIT_IN_BTC = 21000000
 TYPE_ADDRESS = 0
 TYPE_PUBKEY  = 1
 TYPE_SCRIPT  = 2
+TYPE_BET     = 3
 
 
 class opcodes(IntEnum):
@@ -386,6 +387,13 @@ def script_to_address(script: str, *, net=None) -> str:
     t, addr = get_address_from_output_script(bfh(script), net=net)
     assert t == TYPE_ADDRESS
     return addr
+
+def address_to_bet_script(addr: str, *, net=None) -> str:
+    script = bytes(opcodes.OP_RETURN).hex() 
+    print('address_to_bet_script: ', addr)
+    script += bytes(addr,'utf-8').hex()
+    print('Bet Script: ',script)
+    return script
 
 def address_to_script(addr: str, *, net=None) -> str:
     if net is None: net = constants.net

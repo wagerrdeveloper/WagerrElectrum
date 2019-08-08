@@ -45,7 +45,9 @@ from PyQt5.QtWidgets import (QMessageBox, QComboBox, QSystemTrayIcon, QTabWidget
                              QVBoxLayout, QGridLayout, QLineEdit, QTreeWidgetItem,
                              QHBoxLayout, QPushButton, QScrollArea, QTextEdit,
                              QShortcut, QMainWindow, QCompleter, QInputDialog,
-                             QWidget, QMenu, QSizePolicy, QStatusBar)
+                             QWidget, QMenu, QSizePolicy, QStatusBar, QListView)
+
+from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
 import electrum
 from electrum import (keystore, simple_config, ecc, constants, util, bitcoin, commands,
@@ -88,7 +90,26 @@ from .util import (read_QIcon, ColorScheme, text_dialog, icon_path, WaitingDialo
 from .installwizard import WIF_HELP_TEXT
 from .history_list import HistoryList, HistoryModel
 from .update_checker import UpdateCheck, UpdateCheckThread
+from electrum.bet import PeerlessBet
 
+class EventListView(QListView):
+
+    def __init__(self, parent):
+        #super(EventListView, self).__init__(parent)
+        super().__init__(parent)
+        self.parent = parent
+        sports = ["All Events", "Football", "Baseball", "Basketball", "Hockey", "Soccer"
+                    "MMA", "Aussie Rules", "Cricket", "Rugby Union", "Rugby League"]
+        model = QStandardItemModel(self)
+        for s in sports:
+            model.appendRow(QStandardItem(s))
+        self.setModel(model)
+        self.selectionModel().currentRowChanged.connect(self.item_changed)
+
+    def item_changed(self, idx):
+        sport = self.model().itemFromIndex(idx)
+        print("Selected Sport : ", sport.text())
+        self.parent.do_bet()
 
 class StatusBarButton(QPushButton):
     def __init__(self, icon, tooltip, func):
@@ -431,6 +452,12 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             self.show()
         self.watching_only_changed()
         run_hook('load_wallet', wallet, self)
+        try:
+            self.events_data = self.network.run_from_another_thread(self.network.get_events_list(timeout=3))
+            print('Event List: ', self.events_data)
+        except Exception as e:
+            self.show_message(_("Error getting event list from network") + ":\n" + str(e))
+            return
         try:
             wallet.try_detecting_internal_addresses_corruption()
         except InternalAddressCorruption as e:
@@ -1405,96 +1432,109 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         return w
 
     def create_betting_tab(self):
-        # A 4-column grid layout.  All the stretch is in the last column.
-        # The exchange rate plugin adds a fiat widget in column 2
+        # try:
+        #     self.events_data = self.network.run_from_another_thread(self.network.get_events_list(timeout=10))
+        #     print('Event List: ', self.events_data)
+        # except Exception as e:
+        #     self.show_message(_("Error getting event list from network") + ":\n" + str(e))
+        #     return
+
+        # self.betting_grid = grid = QGridLayout()
+        # grid.setSpacing(8)
+        # grid.setColumnStretch(3, 1)
+
+        # from .paytoedit import PayToEdit
+        # self.betting_amount_e = BTCAmountEdit(self.get_decimal_point)
+        # self.eventid_e = MyLineEdit()
+        # msg = _('Event ID.') + '\n\n'\
+        #       + _('Event ID from Event List')
+        # payto_label = HelpLabel(_('Event ID'), msg)
+        # grid.addWidget(payto_label, 1, 0)
+        # grid.addWidget(self.eventid_e, 1, 1, 1, -1)
+
+        # msg = _('Outcome 1-Home 2-Away 3-Draw')
+        # outcome_label = HelpLabel(_('Outcome'), msg)
+        # grid.addWidget(outcome_label, 2, 0)
+        # self.outcome_e = MyLineEdit()
+        # grid.addWidget(self.outcome_e, 2, 1, 1, -1)
+
+        # msg = _('Amount to be sent.') + '\n\n' \
+        #       + _('The amount will be displayed in red if you do not have enough funds in your wallet.') + ' ' \
+        #       + _('Note that if you have frozen some of your addresses, the available funds will be lower than your total balance.') + '\n\n' \
+        #       + _('Keyboard shortcut: type "!" to send all your coins.')
+        # amount_label = HelpLabel(_('Enter Bet Stake'), msg)
+        # grid.addWidget(amount_label, 3, 0)
+        # grid.addWidget(self.betting_amount_e, 3, 1)
+
+        # self.preview_button = EnterButton(_("Preview"), self.do_preview)
+        # self.preview_button.setToolTip(_('Display the details of your transaction before signing it.'))
+        # self.send_button = EnterButton(_("Send"), self.do_bet)
+        # self.clear_button = EnterButton(_("Clear"), self.do_clear)
+        # buttons = QHBoxLayout()
+        # buttons.addStretch(1)
+        # buttons.addWidget(self.clear_button)
+        # buttons.addWidget(self.preview_button)
+        # buttons.addWidget(self.send_button)
+        # grid.addLayout(buttons, 6, 1, 1, 3)
+
+        # def entry_changed():
+        #     text = ""
+
+        #     amt_color = ColorScheme.DEFAULT
+        #     fee_color = ColorScheme.DEFAULT
+        #     feerate_color = ColorScheme.DEFAULT
+
+        #     if self.not_enough_funds:
+        #         amt_color, fee_color = ColorScheme.RED, ColorScheme.RED
+        #         feerate_color = ColorScheme.RED
+        #         text = _("Not enough funds")
+        #         c, u, x = self.wallet.get_frozen_balance()
+        #         if c+u+x:
+        #             text += " ({} {} {})".format(
+        #                 self.format_amount(c + u + x).strip(), self.base_unit(), _("are frozen")
+        #             )
+
+        #     # blue color denotes auto-filled values
+        #     elif self.fee_e.isModified():
+        #         feerate_color = ColorScheme.BLUE
+        #     elif self.feerate_e.isModified():
+        #         fee_color = ColorScheme.BLUE
+        #     elif self.betting_amount_e.isModified():
+        #         fee_color = ColorScheme.BLUE
+        #         feerate_color = ColorScheme.BLUE
+        #     else:
+        #         amt_color = ColorScheme.BLUE
+        #         fee_color = ColorScheme.BLUE
+        #         feerate_color = ColorScheme.BLUE
+
+        #     self.statusBar().showMessage(text)
+        #     self.betting_amount_e.setStyleSheet(amt_color.as_stylesheet())
+
+        # self.betting_amount_e.textChanged.connect(entry_changed)
+        # # self.fee_e.textChanged.connect(entry_changed)
+        # # self.feerate_e.textChanged.connect(entry_changed)
+
         self.betting_grid = grid = QGridLayout()
-        grid.setSpacing(8)
-        grid.setColumnStretch(3, 1)
+        #grid.setSpacing(8)
+        #grid.setColumnStretch(3, 1)
 
-        from .paytoedit import PayToEdit
-        self.betting_amount_e = BTCAmountEdit(self.get_decimal_point)
-        self.eventid_e = MyLineEdit()
-        msg = _('Event ID.') + '\n\n'\
-              + _('Event ID from Event List')
-        payto_label = HelpLabel(_('Event ID'), msg)
-        grid.addWidget(payto_label, 1, 0)
-        grid.addWidget(self.eventid_e, 1, 1, 1, -1)
+        self.events_list = EventListView(self)
 
-        # completer = QCompleter()
-        # completer.setCaseSensitivity(False)
-        # self.eventid_e.set_completer(completer)
-        # completer.setModel(self.completions)
+        # layout
+        vbox_g = QVBoxLayout()
+        vbox_g.addLayout(grid)
+        vbox_g.addStretch()
 
-        msg = _('Outcome 1-Home 2-Away 3-Draw')
-        outcome_label = HelpLabel(_('Outcome'), msg)
-        grid.addWidget(outcome_label, 2, 0)
-        self.outcome_e = MyLineEdit()
-        grid.addWidget(self.outcome_e, 2, 1, 1, -1)
-
-        msg = _('Amount to be sent.') + '\n\n' \
-              + _('The amount will be displayed in red if you do not have enough funds in your wallet.') + ' ' \
-              + _('Note that if you have frozen some of your addresses, the available funds will be lower than your total balance.') + '\n\n' \
-              + _('Keyboard shortcut: type "!" to send all your coins.')
-        amount_label = HelpLabel(_('Enter Bet Stake'), msg)
-        grid.addWidget(amount_label, 3, 0)
-        grid.addWidget(self.betting_amount_e, 3, 1)
-
-        self.preview_button = EnterButton(_("Preview"), self.do_preview)
-        self.preview_button.setToolTip(_('Display the details of your transaction before signing it.'))
-        self.send_button = EnterButton(_("Send"), self.do_send)
-        self.clear_button = EnterButton(_("Clear"), self.do_clear)
-        buttons = QHBoxLayout()
-        buttons.addStretch(1)
-        buttons.addWidget(self.clear_button)
-        buttons.addWidget(self.preview_button)
-        buttons.addWidget(self.send_button)
-        grid.addLayout(buttons, 6, 1, 1, 3)
-
-        def entry_changed():
-            text = ""
-
-            amt_color = ColorScheme.DEFAULT
-            fee_color = ColorScheme.DEFAULT
-            feerate_color = ColorScheme.DEFAULT
-
-            if self.not_enough_funds:
-                amt_color, fee_color = ColorScheme.RED, ColorScheme.RED
-                feerate_color = ColorScheme.RED
-                text = _("Not enough funds")
-                c, u, x = self.wallet.get_frozen_balance()
-                if c+u+x:
-                    text += " ({} {} {})".format(
-                        self.format_amount(c + u + x).strip(), self.base_unit(), _("are frozen")
-                    )
-
-            # blue color denotes auto-filled values
-            elif self.fee_e.isModified():
-                feerate_color = ColorScheme.BLUE
-            elif self.feerate_e.isModified():
-                fee_color = ColorScheme.BLUE
-            elif self.betting_amount_e.isModified():
-                fee_color = ColorScheme.BLUE
-                feerate_color = ColorScheme.BLUE
-            else:
-                amt_color = ColorScheme.BLUE
-                fee_color = ColorScheme.BLUE
-                feerate_color = ColorScheme.BLUE
-
-            self.statusBar().showMessage(text)
-            self.betting_amount_e.setStyleSheet(amt_color.as_stylesheet())
-
-        self.betting_amount_e.textChanged.connect(entry_changed)
-        # self.fee_e.textChanged.connect(entry_changed)
-        # self.feerate_e.textChanged.connect(entry_changed)
-
-        vbox0 = QVBoxLayout()
-        vbox0.addLayout(grid)
         hbox = QHBoxLayout()
-        hbox.addLayout(vbox0)
+        hbox.addLayout(vbox_g)
+
         w = QWidget()
         vbox = QVBoxLayout(w)
-        vbox.addLayout(hbox)
+        vbox.addLayout(vbox_g)
         vbox.addStretch(1)
+        vbox.addWidget(self.events_list)
+        #vbox.setStretchFactor(self.events_list, 1000)
+
         run_hook('create_betting_tab', grid)
         return w
 
@@ -1692,6 +1732,21 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         coins = self.get_coins()
         return outputs, fee_estimator, label, coins
 
+    def read_bet_tab(self):
+        label = 'Betting Transaction'
+        eventId = 40780810
+        outcome = 1
+        amount = 1
+        pb = PeerlessBet(eventId, outcome)
+        opCode = "420103026e440a01"
+        if not(PeerlessBet.ToOpCode(pb,opCode)) :
+            raise Exception('Error converting PeerlessBet to opcode')
+        print('read_bet_tab opCode:',opCode)
+        outputs = [TxOutput(bitcoin.TYPE_BET, opCode, amount)]
+        fee_estimator = self.get_send_fee_estimator()
+        coins = self.get_coins()
+        return outputs, fee_estimator, label, coins
+
     def check_send_tab_outputs_and_show_errors(self, outputs) -> bool:
         """Returns whether there are errors with outputs.
         Also shows error dialog to user if so.
@@ -1736,6 +1791,91 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
     def do_preview(self):
         self.do_send(preview = True)
 
+    def do_bet(self, preview = False):
+        print('do_bet called')
+        if run_hook('abort_bet', self):
+            return
+        outputs, fee_estimator, tx_desc, coins = self.read_bet_tab()
+        if self.check_send_tab_outputs_and_show_errors(outputs):
+            return
+        try:
+            is_sweep = bool(self.tx_external_keypairs)
+            print('do_bet calling make_unsigned_transaction')
+            tx = self.wallet.make_unsigned_transaction(
+                coins, outputs, self.config, fixed_fee=fee_estimator,
+                is_sweep=is_sweep)
+            print('do_bet calling make_unsigned_transaction done')
+        except (NotEnoughFunds, NoDynamicFeeEstimates) as e:
+            self.show_message(str(e))
+            return
+        except InternalAddressCorruption as e:
+            self.show_error(str(e))
+            raise
+        except BaseException as e:
+            self.logger.exception('')
+            self.show_message(str(e))
+            return
+
+        amount = tx.output_value() if self.max_button.isChecked() else sum(map(lambda x:x[2], outputs))
+        fee = tx.get_fee()
+
+        use_rbf = self.config.get('use_rbf', True)
+        if use_rbf:
+            tx.set_rbf(True)
+
+        if fee < self.wallet.relayfee() * tx.estimated_size() / 1000:
+            self.show_error('\n'.join([
+                _("This transaction requires a higher fee, or it will not be propagated by your current server"),
+                _("Try to raise your transaction fee, or use a server with a lower relay fee.")
+            ]))
+            return
+
+        if preview:
+            self.show_transaction(tx, tx_desc)
+            return
+
+        if not self.network:
+            self.show_error(_("You can't broadcast a transaction without a live network connection."))
+            return
+
+        # confirmation dialog
+        msg = [
+            _("Amount to be sent") + ": " + self.format_amount_and_units(amount),
+            _("Mining fee") + ": " + self.format_amount_and_units(fee),
+        ]
+
+        x_fee = run_hook('get_tx_extra_fee', self.wallet, tx)
+        if x_fee:
+            x_fee_address, x_fee_amount = x_fee
+            msg.append( _("Additional fees") + ": " + self.format_amount_and_units(x_fee_amount) )
+
+        feerate_warning = simple_config.FEERATE_WARNING_HIGH_FEE
+        if fee > feerate_warning * tx.estimated_size() / 1000:
+            msg.append(_('Warning') + ': ' + _("The fee for this transaction seems unusually high."))
+
+        if self.wallet.has_keystore_encryption():
+            msg.append("")
+            msg.append(_("Enter your password to proceed"))
+            password = self.password_dialog('\n'.join(msg))
+            if not password:
+                return
+        else:
+            msg.append(_('Proceed?'))
+            password = None
+            if not self.question('\n'.join(msg)):
+                return
+
+        def sign_done(success):
+            if success:
+                if not tx.is_complete():
+                    self.show_transaction(tx)
+                    self.do_clear()
+                else:
+                    print('do_bet sign_done else')
+                    self.broadcast_transaction(tx, tx_desc)
+        print('do_bet calling sign_tx_with_password')
+        self.sign_tx_with_password(tx, sign_done, password)
+        
     def do_send(self, preview = False):
         print('do_send called')
         if run_hook('abort_send', self):
