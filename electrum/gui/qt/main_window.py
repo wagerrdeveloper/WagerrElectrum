@@ -37,6 +37,7 @@ from functools import partial
 import queue
 import asyncio
 from typing import Optional
+import time
 
 from PyQt5.QtGui import QPixmap, QKeySequence, QIcon, QCursor
 from PyQt5.QtCore import Qt, QRect, QStringListModel, QSize, pyqtSignal
@@ -111,17 +112,35 @@ class EventListView(QListView):
         self.update(sport.text())
 
     def update(self,text):
+        self.parent.myQListWidget.clear()
         data=self.parent.events_data
-        
-        for x in data:
-            if x["sport"]==text:
-                self.cw=EventWidget(self.parent)
-                self.cw.setdata(x)
-                self.cw.setFixedHeight(100)
-                myQListWidgetItem = QListWidgetItem(self.parent.myQListWidget)
-                myQListWidgetItem.setSizeHint(self.cw.sizeHint())
-                self.parent.myQListWidget.addItem(myQListWidgetItem)
-                self.parent.myQListWidget.setItemWidget(myQListWidgetItem, self.cw)
+        if text=="All Events":
+             for x in data:
+            
+                 self.cw=EventWidget(self.parent)
+                 self.cw.setdata(x)
+                 #self.cw.setStyleSheet("background-color: rgb(255,255,255); border:1px solid rgb(0, 0, 0); ")
+                 self.cw.setFixedHeight(110)
+                 myQListWidgetItem = QListWidgetItem(self.parent.myQListWidget)
+                 myQListWidgetItem.setSizeHint(self.cw.sizeHint())
+                 myQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
+
+                 #myQListWidgetItem.setStyleSheet("background-color: rgb(255,255,255); border:1px solid rgb(0, 0, 0); ")
+                 self.parent.myQListWidget.addItem(myQListWidgetItem)
+                 self.parent.myQListWidget.setItemWidget(myQListWidgetItem, self.cw)
+        else:
+            for x in data:
+                if x["sport"]==text:
+                    self.cw=EventWidget(self.parent)
+                    self.cw.setdata(x)
+                    #self.cw.setStyleSheet("background-color: rgb(255,255,255); border:1px solid rgb(0, 0, 0); ")
+                    self.cw.setFixedHeight(110)
+                    myQListWidgetItem = QListWidgetItem(self.parent.myQListWidget)
+                    myQListWidgetItem.setSizeHint(self.cw.sizeHint())
+                    #myQListWidgetItem.setStyleSheet("background-color: rgb(255,255,255); border:1px solid rgb(0, 0, 0); ")
+                    self.parent.myQListWidget.addItem(myQListWidgetItem)
+                    self.parent.myQListWidget.setItemWidget(myQListWidgetItem, self.cw)
+            
         self.parent.hbox_betting.addWidget(self.parent.myQListWidget)
         
 class EventWidget(QWidget):
@@ -132,27 +151,50 @@ class EventWidget(QWidget):
         self.grid.setContentsMargins(0,0,0,0)
         
     def buttonClicked1(self):
-        print("button clicked for item : ",self.button1.text())
+        print("button clicked for item : ",self.homebutton.text())
         self.parent.do_bet()
     def buttonClicked2(self):
-        print("button clicked for item : ",self.button2.text())
+        print("button clicked for item : ",self.awaybutton.text())
     def buttonClicked3(self):
-        print("button clicked for item : ",self.button3.text())
+        print("button clicked for item : ",self.drawbutton.text())
 
     def setdata(self,obj):
-        self.label1=QLabel(obj["tournament"])
-        self.label2=QLabel(str("Event Id ("+str(obj["event_id"])+")"))
-        self.label3=QLabel("  Monday 12 Dec 2019  ")
-        self.label4=QLabel("   Money Line  ")
-        self.label11=QLabel("NA")
-        self.label101=QLabel("NA")
+        self.tournament=QLabel(obj["tournament"]+" "+str("(Event Id:"+str(obj["event_id"])+")"))
+        self.tournament.setStyleSheet("QLabel { background-color : rgb(250, 218, 221);  }")
         
 
-        self.label5=QLabel("Home Team")
-        self.label6=QLabel("Away Team")
-        self.label7=QLabel("Draw")
-        self.label12=QLabel("Spread")
-        self.label13=QLabel("Total")
+        self.time1=QLabel(time.strftime('%A,%b %dth %H:%M%p', time.localtime(obj["starting"])))
+        self.time1.setStyleSheet("QLabel { background-color : rgb(250, 218, 221);  }")
+        self.label4=QLabel("   Money Line  ")
+        self.na1=QPushButton("-")
+        self.na2=QPushButton("-")
+        self.na3=QPushButton("-")
+        self.na4=QPushButton("-")
+        self.na5=QPushButton("-")
+        self.na6=QPushButton("-")
+        self.na1.setEnabled(False)
+        self.na2.setEnabled(False)
+        self.na3.setEnabled(False)
+        self.na4.setEnabled(False)
+        self.na5.setEnabled(False)
+        self.na6.setEnabled(False)
+
+        
+
+        self.tournament.setAlignment(Qt.AlignHCenter)
+        
+        self.time1.setAlignment(Qt.AlignHCenter)
+        self.label4.setAlignment(Qt.AlignHCenter)
+        self.homelabel=QLabel(obj["teams"]["home"])
+        self.awaylabel=QLabel(obj["teams"]["away"])
+        self.drawlabel=QLabel("Draw")
+        self.spread=QLabel("Spread")
+        self.total=QLabel("Total")
+        self.homelabel.setAlignment(Qt.AlignLeft)
+        self.awaylabel.setAlignment(Qt.AlignLeft)
+        self.drawlabel.setAlignment(Qt.AlignLeft)
+        self.spread.setAlignment(Qt.AlignHCenter)
+        self.total.setAlignment(Qt.AlignHCenter)
         
 
         # self.label1.setFixedHeight(10)
@@ -160,31 +202,39 @@ class EventWidget(QWidget):
         # self.label3.setFixedHeight(10)
         # self.label4.setFixedHeight(10)
 
-        self.button1 = QPushButton("1.2")
-        self.button2 = QPushButton("1.4")
-        self.button3 = QPushButton("2.6")
-        self.grid.addWidget(self.label1,0,0)
-        self.grid.addWidget(self.label2,0,1)
-        self.grid.addWidget(self.label3,0,2)
+        self.homebutton = QPushButton(str(obj["odds"][0]["mlHome"]))
+        self.homebutton.setFixedWidth(70)
+        
+        self.awaybutton = QPushButton(str(obj["odds"][0]["mlAway"]))
+        self.drawbutton = QPushButton(str(obj["odds"][0]["mlDraw"]))
+        self.grid.addWidget(self.tournament,0,0)
+        
+        self.grid.addWidget(self.time1,0,3)
 
         self.grid.addWidget(self.label4,1,1)
-        self.grid.addWidget(self.label12,1,2)
-        self.grid.addWidget(self.label13,1,3)
+        self.grid.addWidget(self.spread,1,2)
+        self.grid.addWidget(self.total,1,3)
 
-        self.grid.addWidget(self.label5,2,0)
-        self.grid.addWidget(self.button1,2,1)
-        self.grid.addWidget(self.label101,2,2)
-        self.grid.addWidget(self.label11,2,3)
+        self.grid.addWidget(self.homelabel,2,0)
+        self.grid.addWidget(self.homebutton,2,1,alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.na2,2,2,alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.na1,2,3,alignment=Qt.AlignCenter)
 
 
-        self.grid.addWidget(self.label6,3,0)
-        self.grid.addWidget(self.button2,3,1)
+        self.grid.addWidget(self.awaylabel,3,0)
+        self.grid.addWidget(self.awaybutton,3,1,alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.na3,3,2,alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.na4,3,3,alignment=Qt.AlignCenter)
 
-        self.grid.addWidget(self.label7,4,0)
-        self.grid.addWidget(self.button3,4,1)
-        self.button1.clicked.connect(self.buttonClicked1)
-        self.button2.clicked.connect(self.buttonClicked2)
-        self.button3.clicked.connect(self.buttonClicked3)
+        self.grid.addWidget(self.drawlabel,4,0)
+        self.grid.addWidget(self.drawbutton,4,1,alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.na5,4,2,alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.na6,4,3,alignment=Qt.AlignCenter)
+
+
+        self.homebutton.clicked.connect(self.buttonClicked1)
+        self.awaybutton.clicked.connect(self.buttonClicked2)
+        self.drawbutton.clicked.connect(self.buttonClicked3)
         self.setLayout(self.grid)
 
 class StatusBarButton(QPushButton):
@@ -1592,7 +1642,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         # # self.feerate_e.textChanged.connect(entry_changed)
         self.hbox_betting=QHBoxLayout()
         self.myQListWidget = QListWidget()
-        self.myQListWidget.setFixedWidth(500)
+        self.myQListWidget.setFixedWidth(700)
+        self.myQListWidget.setStyleSheet(" QListWidget::item {margin: 5px; border: 1px solid grey }")
         self.betting_grid = grid = QGridLayout()
 
         self.events_list = EventListView(self)
