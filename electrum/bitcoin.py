@@ -389,10 +389,10 @@ def script_to_address(script: str, *, net=None) -> str:
     return addr
 
 def address_to_bet_script(addr: str, *, net=None) -> str:
-    script = bytes(opcodes.OP_RETURN).hex() 
-    print('address_to_bet_script: ', addr)
-    script += bytes(addr,'utf-8').hex()
-    print('Bet Script: ',script)
+    script = opcodes.OP_RETURN.hex()
+    addrhex = bytes(addr,'utf-8').hex()
+    script += push_script(addrhex)
+    print('Bet ScriptPubKey: ',script)
     return script
 
 def address_to_script(addr: str, *, net=None) -> str:
@@ -408,10 +408,12 @@ def address_to_script(addr: str, *, net=None) -> str:
         return script
     addrtype, hash_160_ = b58_address_to_hash160(addr)
     if addrtype == net.ADDRTYPE_P2PKH:
+        print('address_to_script addrtype == net.ADDRTYPE_P2PKH')
         script = bytes([opcodes.OP_DUP, opcodes.OP_HASH160]).hex()
         script += push_script(bh2u(hash_160_))
         script += bytes([opcodes.OP_EQUALVERIFY, opcodes.OP_CHECKSIG]).hex()
     elif addrtype == net.ADDRTYPE_P2SH:
+        print('address_to_script addrtype == net.ADDRTYPE_P2SH')
         script = opcodes.OP_HASH160.hex()
         script += push_script(bh2u(hash_160_))
         script += opcodes.OP_EQUAL.hex()

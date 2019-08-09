@@ -115,7 +115,7 @@ class EventListView(QListView):
         
         for x in data:
             if x["sport"]==text:
-                self.cw=EventWidget()
+                self.cw=EventWidget(self.parent)
                 self.cw.setdata(x)
                 self.cw.setFixedHeight(100)
                 myQListWidgetItem = QListWidgetItem(self.parent.myQListWidget)
@@ -127,11 +127,13 @@ class EventListView(QListView):
 class EventWidget(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent=parent)
+        self.parent = parent
         self.grid=QGridLayout()
         self.grid.setContentsMargins(0,0,0,0)
         
     def buttonClicked1(self):
         print("button clicked for item : ",self.button1.text())
+        self.parent.do_bet()
     def buttonClicked2(self):
         print("button clicked for item : ",self.button2.text())
     def buttonClicked3(self):
@@ -1802,13 +1804,14 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         outcome = 1
         amount = 1
         pb = PeerlessBet(eventId, outcome)
+        opCode = ''
+        if not(PeerlessBet.ToOpCode(pb,opCode)) :
+            raise Exception('Error converting PeerlessBet to opcode')
         opCode = "420103026e440a01"
         unhexOpCode = bytes.fromhex(opCode).decode('utf-8')
         print('unhexed : ', unhexOpCode)
-        if not(PeerlessBet.ToOpCode(pb,unhexOpCode)) :
-            raise Exception('Error converting PeerlessBet to opcode')
         print('read_bet_tab opCode:',opCode)
-        outputs = [TxOutput(bitcoin.TYPE_BET, opCode, amount)]
+        outputs = [TxOutput(bitcoin.TYPE_BET, unhexOpCode, amount)]
         fee_estimator = self.get_send_fee_estimator()
         coins = self.get_coins()
         return outputs, fee_estimator, label, coins
