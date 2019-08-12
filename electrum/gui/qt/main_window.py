@@ -49,7 +49,7 @@ from PyQt5.QtCore import Qt, QRect, QStringListModel, QSize, pyqtSignal
 from PyQt5.QtWidgets import (QMessageBox, QComboBox, QSystemTrayIcon, QTabWidget,
                              QSpinBox, QMenuBar, QFileDialog, QCheckBox, QLabel,
                              QVBoxLayout, QGridLayout, QLineEdit, QTreeWidgetItem,
-                             QHBoxLayout, QPushButton, QScrollArea, QTextEdit,
+                             QHBoxLayout, QPushButton, QScrollArea, QTextEdit,QFrame,
                              QShortcut, QMainWindow, QCompleter, QInputDialog,
                              QWidget, QMenu, QSizePolicy, QStatusBar, QListView,QSpacerItem, QSizePolicy,QListWidget,QListWidgetItem)
 
@@ -157,7 +157,9 @@ class BetWidget(QWidget):
         self.set_labels()
 
     def closeButtonClicked(self):
-        self.setParent(None)
+        #self.setParent(None)
+        #self.close()
+        self.parent.betQListWidget.takeItem(0)   
 
     def set_labels(self):
         self.header_label=QLabel("")
@@ -165,8 +167,8 @@ class BetWidget(QWidget):
         self.close_button=QPushButton("x")
         self.close_button.setFixedWidth(15)
         self.close_button.clicked.connect(self.closeButtonClicked)
-
-        self.header_label.setStyleSheet("QLabel { background-color : rgb(250, 218, 221); }")
+        self.frame=QFrame()
+        #self.header_label.setStyleSheet("QLabel { background-color : rgb(250, 218, 221); }")
         self.header_label.setAlignment(Qt.AlignHCenter)
         self.yourpick=QLabel("Your Pick:")
         self.yourpick.setAlignment(Qt.AlignHCenter)
@@ -204,7 +206,7 @@ class EventWidget(QWidget):
     def homeButtonClicked(self):
         print("button clicked for item : ",self.MoneyLineHomeButton.text())
         self.parent.do_bet()
-        self.betWidget=BetWidget()
+        self.betWidget=BetWidget(self.parent)
         self.betWidget.header_label.setText(self.homelabel.text()+" vs "+self.awaylabel.text())        
         #self.betWidget.setFixedHeight(300)
         self.betWidget.team_label.setText(self.homelabel.text())
@@ -212,20 +214,20 @@ class EventWidget(QWidget):
         # for i in reversed(range(self.parent.vbox_b.count())): 
         #     self.parent.vbox_b.itemAt(i).widget().setParent(None)
         #self.parent.vbox_b.addWidget(self.betWidget)
-        self.parent.hbox_betting.addLayout(self.parent.vbox_b)
-        self.parent.matchQListWidget.clear()
-        matchQListWidgetItem = QListWidgetItem(self.parent.matchQListWidget)
-        matchQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
-        matchQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
+        
+        self.parent.betQListWidget.clear()
+        betQListWidgetItem = QListWidgetItem(self.parent.betQListWidget)
+        betQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
+        betQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
 
-        self.parent.matchQListWidget.addItem(matchQListWidgetItem)
-        self.parent.matchQListWidget.setItemWidget(matchQListWidgetItem, self.betWidget)
-        self.parent.vbox_b.addWidget(self.parent.matchQListWidget)
+        self.parent.betQListWidget.addItem(betQListWidgetItem)
+        self.parent.betQListWidget.setItemWidget(betQListWidgetItem, self.betWidget)
+        self.parent.vbox_b.addWidget(self.parent.betQListWidget)
         self.parent.hbox_betting.addLayout(self.parent.vbox_b)
 
     def awayButtonClicked(self):
         print("button clicked for item : ",self.MoneyLinelAwayButton.text())
-        self.betWidget=BetWidget()
+        self.betWidget=BetWidget(self.parent)
         self.betWidget.header_label.setText(self.homelabel.text()+" vs "+self.awaylabel.text())        
         #self.betWidget.setFixedHeight(180)
         self.betWidget.team_label.setText(self.awaylabel.text())
@@ -234,32 +236,33 @@ class EventWidget(QWidget):
         #     self.parent.vbox_b.itemAt(i).widget().setParent(None)
         #self.parent.vbox_b.addWidget(self.betWidget)
         #self.parent.hbox_betting.addLayout(self.parent.vbox_b)
-        self.parent.hbox_betting.addLayout(self.parent.vbox_b)
-        self.parent.matchQListWidget.clear()
-        matchQListWidgetItem = QListWidgetItem(self.parent.matchQListWidget)
-        matchQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
-        matchQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
+        
+        self.parent.betQListWidget.clear()
+        betQListWidgetItem = QListWidgetItem(self.parent.betQListWidget)
+        betQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
+        betQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
 
-        self.parent.matchQListWidget.addItem(matchQListWidgetItem)
-        self.parent.matchQListWidget.setItemWidget(matchQListWidgetItem, self.betWidget)
-        self.parent.vbox_b.addWidget(self.parent.matchQListWidget)
+        self.parent.betQListWidget.addItem(betQListWidgetItem)
+        self.parent.betQListWidget.setItemWidget(betQListWidgetItem, self.betWidget)
+        self.parent.vbox_b.addWidget(self.parent.betQListWidget)
         self.parent.hbox_betting.addLayout(self.parent.vbox_b)
 
     def drawButtonClicked(self):
-        print("button clicked for item : ",self.MoneyLinelDrawButton.text())
-        self.betWidget=BetWidget()
+        print("button clicked for item : ",
+        self.MoneyLinelDrawButton.text())
+        self.betWidget=BetWidget(self.parent)
         self.betWidget.header_label.setText(self.homelabel.text()+" vs "+self.awaylabel.text())        
         self.betWidget.team_label.setText(self.drawlabel.text())
         self.betWidget.value.setText(self.MoneyLinelDrawButton.text())
-        self.parent.hbox_betting.addLayout(self.parent.vbox_b)
-        self.parent.matchQListWidget.clear()
-        matchQListWidgetItem = QListWidgetItem(self.parent.matchQListWidget)
-        matchQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
-        matchQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
+        #self.parent.hbox_betting.addLayout(self.parent.vbox_b)
+        self.parent.betQListWidget.clear()
+        betQListWidgetItem = QListWidgetItem(self.parent.betQListWidget)
+        betQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
+        betQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
 
-        self.parent.matchQListWidget.addItem(matchQListWidgetItem)
-        self.parent.matchQListWidget.setItemWidget(matchQListWidgetItem, self.betWidget)
-        self.parent.vbox_b.addWidget(self.parent.matchQListWidget)
+        self.parent.betQListWidget.addItem(betQListWidgetItem)
+        self.parent.betQListWidget.setItemWidget(betQListWidgetItem, self.betWidget)
+        self.parent.vbox_b.addWidget(self.parent.betQListWidget)
         self.parent.hbox_betting.addLayout(self.parent.vbox_b)
         
 
@@ -1745,9 +1748,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.eventQListWidget.setFixedWidth(800)
         self.eventQListWidget.setStyleSheet(" QListWidget::item {margin: 5px; border: 1px solid grey }")
 
-        self.matchQListWidget = QListWidget()
-        self.matchQListWidget.setFixedWidth(300)
-        self.matchQListWidget.setStyleSheet(" QListWidget::item {height:100px ; border: 1px solid black }")
+        self.betQListWidget = QListWidget()
+        self.betQListWidget.setFixedWidth(300)
+        self.betQListWidget.setStyleSheet(" QListWidget::item {height:100px ; border: 1px solid black }")
 
         self.bet_slip=QLabel("BET SLIP")
         self.clear_slip=QPushButton("CLEAR SLIP")
@@ -1763,14 +1766,14 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
 
         self.events_list = EventListView(self)
         self.events_list.setFixedWidth(150)
-        w =  QWidget()
+        self.w =  QWidget()
         self.hbox_betting.addWidget(self.events_list)
-        w.setLayout(self.hbox_betting)
+        self.w.setLayout(self.hbox_betting)
 
         run_hook('create_betting_tab', grid)
-        return w
+        return self.w
     def Clear_Clicked(self):
-        self.matchQListWidget.clear()
+        self.betQListWidget.clear()
 
 
     def spend_max(self):
