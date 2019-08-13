@@ -109,6 +109,7 @@ class EventListView(QListView):
         sports = ["All Events", "Football", "Baseball", "Basketball", "Hockey", "Soccer",
                     "MMA", "Aussie Rules", "Cricket", "Rugby Union", "Rugby League"]
         model = QStandardItemModel(self)
+        self.setSpacing(10)
         for s in sports:
             model.appendRow(QStandardItem(s))
         self.setModel(model)
@@ -146,7 +147,7 @@ class EventListView(QListView):
                     self.parent.eventQListWidget.addItem(eventQListWidgetItem)
                     self.parent.eventQListWidget.setItemWidget(eventQListWidgetItem, self.cw)
             
-        self.parent.hbox_betting.addWidget(self.parent.eventQListWidget)
+        self.parent.grid_betting.addWidget(self.parent.eventQListWidget,0,1)
 
 class BetWidget(QWidget):
     def __init__(self, parent=None):
@@ -154,6 +155,7 @@ class BetWidget(QWidget):
         self.parent = parent
         self.vbox_c=QVBoxLayout()
         self.setFixedWidth(300)
+        #self.setMinimumWidth(300)
         self.set_labels()
 
     def closeButtonClicked(self):
@@ -164,9 +166,12 @@ class BetWidget(QWidget):
     def set_labels(self):
         self.header_label=QLabel("")
         self.header_hbox=QHBoxLayout()
+
         self.close_button=QPushButton("x")
         self.close_button.setFixedWidth(15)
         self.close_button.clicked.connect(self.closeButtonClicked)
+        self.potential_label=QLabel("Potential Returns:")
+        self.potential_returns_value_label=QLabel("0 WGR")
         self.frame=QFrame()
         #self.header_label.setStyleSheet("QLabel { background-color : rgb(250, 218, 221); }")
         self.header_label.setAlignment(Qt.AlignHCenter)
@@ -176,14 +181,19 @@ class BetWidget(QWidget):
         self.team_label.setAlignment(Qt.AlignHCenter)
         newfont = QFont("Times", 16) 
         self.team_label.setFont(newfont)
-        self.value=QLabel("1")
-        self.value.setStyleSheet("background-color: grey; border:1px solid rgb(0, 0, 0); ")
-        self.value.setAlignment(Qt.AlignHCenter)
+        self.selectedOddValue=QLabel("1")
+        self.selectedOddValue.setStyleSheet("background-color: grey; border:1px solid rgb(0, 0, 0); ")
+        self.selectedOddValue.setAlignment(Qt.AlignHCenter)
+        self.potential_label.setAlignment(Qt.AlignHCenter)
+        self.potential_returns_value_label.setAlignment(Qt.AlignHCenter)
         self.betting_amount_c=QLineEdit()
         self.betting_amount_c.setFixedWidth(180)
+        # self.onlyInt = QIntValidator()
+        # self.betting_amount_c.setValidator(self.onlyInt)
         self.h=QHBoxLayout()
         self.bet=QPushButton("BET")
         self.bet.setFixedWidth(70)
+        
         self.header_hbox.addWidget(self.header_label)
         self.header_hbox.addWidget(self.close_button)
         self.vbox_c.addLayout(self.header_hbox)
@@ -193,7 +203,8 @@ class BetWidget(QWidget):
         self.h.addWidget(self.betting_amount_c)
         self.h.addWidget(self.bet)
         self.vbox_c.addLayout(self.h)
-        
+        self.vbox_c.addWidget(self.potential_label)
+        self.vbox_c.addWidget(self.potential_returns_value_label)
         self.setLayout(self.vbox_c)
 
 class EventWidget(QWidget):
@@ -202,6 +213,11 @@ class EventWidget(QWidget):
         self.parent = parent
         self.grid=QGridLayout()
         self.grid.setContentsMargins(0,0,0,0)
+        self.grid.setColumnMinimumWidth(0,280)
+        self.grid.setColumnMinimumWidth(1,280)
+        self.grid.setColumnMinimumWidth(2,280)
+        self.grid.setColumnMinimumWidth(3,280)
+
         
     def homeButtonClicked(self):
         print("button clicked for item : ",self.MoneyLineHomeButton.text())
@@ -223,7 +239,7 @@ class EventWidget(QWidget):
         self.parent.betQListWidget.addItem(betQListWidgetItem)
         self.parent.betQListWidget.setItemWidget(betQListWidgetItem, self.betWidget)
         self.parent.vbox_b.addWidget(self.parent.betQListWidget)
-        self.parent.hbox_betting.addLayout(self.parent.vbox_b)
+        #self.parent.grid_betting.addLayout(self.parent.vbox_b,0,2)
 
     def awayButtonClicked(self):
         print("button clicked for item : ",self.MoneyLinelAwayButton.text())
@@ -235,7 +251,7 @@ class EventWidget(QWidget):
         # for i in reversed(range(self.parent.vbox_b.count())): 
         #     self.parent.vbox_b.itemAt(i).widget().setParent(None)
         #self.parent.vbox_b.addWidget(self.betWidget)
-        #self.parent.hbox_betting.addLayout(self.parent.vbox_b)
+        
         
         self.parent.betQListWidget.clear()
         betQListWidgetItem = QListWidgetItem(self.parent.betQListWidget)
@@ -245,7 +261,7 @@ class EventWidget(QWidget):
         self.parent.betQListWidget.addItem(betQListWidgetItem)
         self.parent.betQListWidget.setItemWidget(betQListWidgetItem, self.betWidget)
         self.parent.vbox_b.addWidget(self.parent.betQListWidget)
-        self.parent.hbox_betting.addLayout(self.parent.vbox_b)
+        #self.parent.grid_betting.addLayout(self.parent.vbox_b,0,2)
 
     def drawButtonClicked(self):
         print("button clicked for item : ",
@@ -254,7 +270,7 @@ class EventWidget(QWidget):
         self.betWidget.header_label.setText(self.homelabel.text()+" vs "+self.awaylabel.text())        
         self.betWidget.team_label.setText(self.drawlabel.text())
         self.betWidget.value.setText(self.MoneyLinelDrawButton.text())
-        #self.parent.hbox_betting.addLayout(self.parent.vbox_b)
+        
         self.parent.betQListWidget.clear()
         betQListWidgetItem = QListWidgetItem(self.parent.betQListWidget)
         betQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
@@ -263,7 +279,7 @@ class EventWidget(QWidget):
         self.parent.betQListWidget.addItem(betQListWidgetItem)
         self.parent.betQListWidget.setItemWidget(betQListWidgetItem, self.betWidget)
         self.parent.vbox_b.addWidget(self.parent.betQListWidget)
-        self.parent.hbox_betting.addLayout(self.parent.vbox_b)
+        #self.parent.grid_betting.addLayout(self.parent.vbox_b,0,2)
         
 
     def setdata(self,obj):
@@ -1743,13 +1759,20 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         # self.betting_amount_e.textChanged.connect(entry_changed)
         # # self.fee_e.textChanged.connect(entry_changed)
         # # self.feerate_e.textChanged.connect(entry_changed)
-        self.hbox_betting=QHBoxLayout()
+        self.grid_betting=QGridLayout()
+        #self.grid_betting.setColumnStretch(2,4)
+        self.grid_betting.setColumnStretch(0,4)
+        self.grid_betting.setColumnStretch(1,6)
+        
         self.eventQListWidget = QListWidget()
-        self.eventQListWidget.setFixedWidth(800)
+        #self.eventQListWidget.setFixedWidth(900)
+        
+        #self.eventQListWidget.setMinimumWidth(800)
         self.eventQListWidget.setStyleSheet(" QListWidget::item {margin: 5px; border: 1px solid grey }")
 
         self.betQListWidget = QListWidget()
         self.betQListWidget.setFixedWidth(300)
+        #self.betQListWidget.setMinimumWidth(300)
         self.betQListWidget.setStyleSheet(" QListWidget::item {height:100px ; border: 1px solid black }")
 
         self.bet_slip=QLabel("BET SLIP")
@@ -1758,23 +1781,29 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.hbox_slip=QHBoxLayout()
         self.hbox_slip.addWidget(self.bet_slip)
         self.hbox_slip.addWidget(self.clear_slip)
+        self.hbox_slip.setAlignment(Qt.AlignTop)
         self.betting_grid = grid = QGridLayout()
         self.vbox_b=QVBoxLayout()
         self.vbox_b.addLayout(self.hbox_slip)
         self.clear_slip.clicked.connect(self.Clear_Clicked)
-        
+                
 
         self.events_list = EventListView(self)
         self.events_list.setFixedWidth(150)
+        #self.events_list.setMinimumWidth(150)
         self.w =  QWidget()
-        self.hbox_betting.addWidget(self.events_list)
-        self.w.setLayout(self.hbox_betting)
-
+        self.grid_betting.addWidget(self.events_list,0,0)
+        self.grid_betting.addLayout(self.vbox_b,0,2)
+        
+        self.grid_betting.setColumnMinimumWidth(1,1120)
+        self.grid_betting.setColumnMinimumWidth(2,150)
+        self.w.setLayout(self.grid_betting)
+        #self.w.setMinimumSize(800, 800)
         run_hook('create_betting_tab', grid)
         return self.w
+
     def Clear_Clicked(self):
         self.betQListWidget.clear()
-
 
     def spend_max(self):
         if run_hook('abort_send', self):
