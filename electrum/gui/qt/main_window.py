@@ -105,7 +105,9 @@ class EventListView(QListView):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        self.selectedSport = "All Events"
+        #self.selectedSport = "All Events"
+        self.selectedSport = ""
+
         sports = ["All Events", "Football", "Baseball", "Basketball", "Hockey", "Soccer",
                     "MMA", "Aussie Rules", "Cricket", "Rugby Union", "Rugby League"]
         model = QStandardItemModel(self)
@@ -129,7 +131,7 @@ class EventListView(QListView):
             
                  self.cw=EventWidget(self.parent)
                  self.cw.setdata(x)
-                 self.cw.setFixedHeight(110)
+                 self.cw.setFixedHeight(130)
                  eventQListWidgetItem = QListWidgetItem(self.parent.eventQListWidget)
                  eventQListWidgetItem.setSizeHint(self.cw.sizeHint())
                  eventQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
@@ -141,7 +143,7 @@ class EventListView(QListView):
                 if x["sport"]==self.selectedSport:
                     self.cw=EventWidget(self.parent)
                     self.cw.setdata(x)
-                    self.cw.setFixedHeight(110)
+                    self.cw.setFixedHeight(130)
                     eventQListWidgetItem = QListWidgetItem(self.parent.eventQListWidget)
                     eventQListWidgetItem.setSizeHint(self.cw.sizeHint())
                     self.parent.eventQListWidget.addItem(eventQListWidgetItem)
@@ -166,7 +168,7 @@ class BetWidget(QWidget):
     def set_labels(self):
         self.header_label=QLabel("")
         self.header_hbox=QHBoxLayout()
-
+        self.header_hbox.setSpacing(0)
         self.close_button=QPushButton("x")
         self.close_button.setFixedWidth(15)
         self.close_button.clicked.connect(self.closeButtonClicked)
@@ -199,7 +201,7 @@ class BetWidget(QWidget):
         self.vbox_c.addLayout(self.header_hbox)
         self.vbox_c.addWidget(self.yourpick)
         self.vbox_c.addWidget(self.team_label)
-        self.vbox_c.addWidget(self.value)
+        self.vbox_c.addWidget(self.selectedOddValue)
         self.h.addWidget(self.betting_amount_c)
         self.h.addWidget(self.bet)
         self.vbox_c.addLayout(self.h)
@@ -213,10 +215,10 @@ class EventWidget(QWidget):
         self.parent = parent
         self.grid=QGridLayout()
         self.grid.setContentsMargins(0,0,0,0)
-        self.grid.setColumnMinimumWidth(0,280)
-        self.grid.setColumnMinimumWidth(1,280)
-        self.grid.setColumnMinimumWidth(2,280)
-        self.grid.setColumnMinimumWidth(3,280)
+        # self.grid.setColumnMinimumWidth(0,280)
+        # self.grid.setColumnMinimumWidth(1,280)
+        # self.grid.setColumnMinimumWidth(2,280)
+        # self.grid.setColumnMinimumWidth(3,280)
 
         
     def homeButtonClicked(self):
@@ -226,7 +228,7 @@ class EventWidget(QWidget):
         self.betWidget.header_label.setText(self.homelabel.text()+" vs "+self.awaylabel.text())        
         #self.betWidget.setFixedHeight(300)
         self.betWidget.team_label.setText(self.homelabel.text())
-        self.betWidget.value.setText(self.MoneyLineHomeButton.text())
+        self.betWidget.selectedOddValue.setText(self.MoneyLineHomeButton.text())
         # for i in reversed(range(self.parent.vbox_b.count())): 
         #     self.parent.vbox_b.itemAt(i).widget().setParent(None)
         #self.parent.vbox_b.addWidget(self.betWidget)
@@ -247,7 +249,7 @@ class EventWidget(QWidget):
         self.betWidget.header_label.setText(self.homelabel.text()+" vs "+self.awaylabel.text())        
         #self.betWidget.setFixedHeight(180)
         self.betWidget.team_label.setText(self.awaylabel.text())
-        self.betWidget.value.setText(self.MoneyLinelAwayButton.text())
+        self.betWidget.selectedOddValue.setText(self.MoneyLinelAwayButton.text())
         # for i in reversed(range(self.parent.vbox_b.count())): 
         #     self.parent.vbox_b.itemAt(i).widget().setParent(None)
         #self.parent.vbox_b.addWidget(self.betWidget)
@@ -269,7 +271,7 @@ class EventWidget(QWidget):
         self.betWidget=BetWidget(self.parent)
         self.betWidget.header_label.setText(self.homelabel.text()+" vs "+self.awaylabel.text())        
         self.betWidget.team_label.setText(self.drawlabel.text())
-        self.betWidget.value.setText(self.MoneyLinelDrawButton.text())
+        self.betWidget.selectedOddValue.setText(self.MoneyLinelDrawButton.text())
         
         self.parent.betQListWidget.clear()
         betQListWidgetItem = QListWidgetItem(self.parent.betQListWidget)
@@ -285,8 +287,15 @@ class EventWidget(QWidget):
     def setdata(self,obj):
         self.tournament=QLabel(obj["tournament"]+" "+str("(Event ID: "+str(obj["event_id"])+")"))
         self.tournament.setStyleSheet("QLabel { background-color : rgb(250, 218, 221);  }")
-
+        self.tournament.setAlignment(Qt.AlignLeft)
         self.eventTime=QLabel(time.strftime('%A,%b %dth %I:%M%p(%z %Z)', time.localtime(obj["starting"])))
+        self.eventTime.setAlignment(Qt.AlignRight)
+        self.hbox_tournament=QHBoxLayout()
+        self.hbox_tournament.addWidget(self.tournament)
+        self.hbox_tournament.addWidget(self.eventTime)
+        self.hbox_tournament.setSpacing(0)
+        self.vbox_event=QVBoxLayout()
+        self.vbox_event.addLayout(self.hbox_tournament)
         self.eventTime.setStyleSheet("QLabel { background-color : rgb(250, 218, 221);  }")
         self.MoneyLinelabel=QLabel("   Money Line  ")
         self.totalhome=QPushButton("-")
@@ -302,9 +311,9 @@ class EventWidget(QWidget):
         self.spreaddraw.setEnabled(False)
         self.totaldraw.setEnabled(False)
 
-        self.tournament.setAlignment(Qt.AlignHCenter)
+        #self.tournament.setAlignment(Qt.AlignHCenter)
         
-        self.eventTime.setAlignment(Qt.AlignHCenter)
+        #self.eventTime.setAlignment(Qt.AlignHCenter)
         self.MoneyLinelabel.setAlignment(Qt.AlignHCenter)
         self.homelabel=QLabel(obj["teams"]["home"])
         self.awaylabel=QLabel(obj["teams"]["away"])
@@ -321,33 +330,34 @@ class EventWidget(QWidget):
         
         self.MoneyLinelAwayButton = QPushButton(str(("{0:.2f}".format(obj["odds"][0]["mlAway"]/ODDS_DIVISOR))))
         self.MoneyLinelDrawButton = QPushButton(str(("{0:.2f}".format(obj["odds"][0]["mlDraw"]/ODDS_DIVISOR))))
-        self.grid.addWidget(self.tournament,0,0)
+        #.grid.addWidget(self.tournament,0,0)
         
-        self.grid.addWidget(self.eventTime,0,3)
+        #self.grid.addWidget(self.eventTime,0,3)
 
-        self.grid.addWidget(self.MoneyLinelabel,1,1)
-        self.grid.addWidget(self.spread,1,2)
-        self.grid.addWidget(self.total,1,3)
+        self.grid.addWidget(self.MoneyLinelabel,0,1)
+        self.grid.addWidget(self.spread,0,2)
+        self.grid.addWidget(self.total,0,3)
 
-        self.grid.addWidget(self.homelabel,2,0)
-        self.grid.addWidget(self.MoneyLineHomeButton,2,1,alignment=Qt.AlignCenter)
-        self.grid.addWidget(self.spreadhome,2,2,alignment=Qt.AlignCenter)
-        self.grid.addWidget(self.totalhome,2,3,alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.homelabel,1,0)
+        self.grid.addWidget(self.MoneyLineHomeButton,1,1,alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.spreadhome,1,2,alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.totalhome,1,3,alignment=Qt.AlignCenter)
 
-        self.grid.addWidget(self.awaylabel,3,0)
-        self.grid.addWidget(self.MoneyLinelAwayButton,3,1,alignment=Qt.AlignCenter)
-        self.grid.addWidget(self.spreadaway,3,2,alignment=Qt.AlignCenter)
-        self.grid.addWidget(self.totalaway,3,3,alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.awaylabel,2,0)
+        self.grid.addWidget(self.MoneyLinelAwayButton,2,1,alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.spreadaway,2,2,alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.totalaway,2,3,alignment=Qt.AlignCenter)
 
-        self.grid.addWidget(self.drawlabel,4,0)
-        self.grid.addWidget(self.MoneyLinelDrawButton,4,1,alignment=Qt.AlignCenter)
-        self.grid.addWidget(self.spreaddraw,4,2,alignment=Qt.AlignCenter)
-        self.grid.addWidget(self.totaldraw,4,3,alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.drawlabel,3,0)
+        self.grid.addWidget(self.MoneyLinelDrawButton,3,1,alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.spreaddraw,3,2,alignment=Qt.AlignCenter)
+        self.grid.addWidget(self.totaldraw,3,3,alignment=Qt.AlignCenter)
 
         self.MoneyLineHomeButton.clicked.connect(self.homeButtonClicked)
         self.MoneyLinelAwayButton.clicked.connect(self.awayButtonClicked)
         self.MoneyLinelDrawButton.clicked.connect(self.drawButtonClicked)
-        self.setLayout(self.grid)
+        self.vbox_event.addLayout(self.grid)
+        self.setLayout(self.vbox_event)
 
 class StatusBarButton(QPushButton):
     def __init__(self, icon, tooltip, func):
@@ -1795,7 +1805,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.grid_betting.addWidget(self.events_list,0,0)
         self.grid_betting.addLayout(self.vbox_b,0,2)
         
-        self.grid_betting.setColumnMinimumWidth(1,1120)
+        #self.grid_betting.setColumnMinimumWidth(1,1120)
         self.grid_betting.setColumnMinimumWidth(2,150)
         self.w.setLayout(self.grid_betting)
         #self.w.setMinimumSize(800, 800)
