@@ -44,14 +44,14 @@ from tzlocal import get_localzone
 
 from datetime import datetime
 
-from PyQt5.QtGui import QPixmap, QKeySequence, QIcon, QCursor
-from PyQt5.QtCore import Qt, QRect, QStringListModel, QSize, pyqtSignal
+from PyQt5.QtGui import QPixmap, QKeySequence, QIcon, QCursor,QDoubleValidator
+from PyQt5.QtCore import Qt, QRect, QStringListModel, QSize, pyqtSignal,QModelIndex,QItemSelectionModel
 from PyQt5.QtWidgets import (QMessageBox, QComboBox, QSystemTrayIcon, QTabWidget,
                              QSpinBox, QMenuBar, QFileDialog, QCheckBox, QLabel,
                              QVBoxLayout, QGridLayout, QLineEdit, QTreeWidgetItem,
                              QHBoxLayout, QPushButton, QScrollArea, QTextEdit,QFrame,
                              QShortcut, QMainWindow, QCompleter, QInputDialog,
-                             QWidget, QMenu, QSizePolicy, QStatusBar, QListView,QSpacerItem, QSizePolicy,QListWidget,QListWidgetItem)
+                             QWidget, QMenu, QSizePolicy, QStatusBar, QListView,QAbstractItemView,QSpacerItem, QSizePolicy,QListWidget,QListWidgetItem)
 
 from PyQt5.QtGui import QStandardItemModel, QStandardItem,QFont
 
@@ -107,6 +107,8 @@ class EventListView(QListView):
         self.parent = parent
         #self.selectedSport = "All Events"
         self.selectedSport = ""
+        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
 
         sports = ["All Events", "Football", "Baseball", "Basketball", "Hockey", "Soccer",
                     "MMA", "Aussie Rules", "Cricket", "Rugby Union", "Rugby League"]
@@ -115,12 +117,22 @@ class EventListView(QListView):
         for s in sports:
             model.appendRow(QStandardItem(s))
         self.setModel(model)
+        
+        #QModelIndex index = self.model().createIndex(0,0)
+        # if index.isValid(): 
+        #     model.selectionModel().select(index)
+        #self.setCurrentIndex(0)
+        # QModelIndex index = self.model().index(0,0)
+        # self.selectionModel().setCurrentIndex(index, QItemSelectionModel::SelectCurrent)
+
         self.selectionModel().currentRowChanged.connect(self.item_changed)
 
     def item_changed(self, idx):
         sport = self.model().itemFromIndex(idx)
         self.selectedSport = sport.text()
         print("Selected Sport : ", sport.text())
+        self.selectionModel().setCurrentIndex(idx, QItemSelectionModel.SelectCurrent)
+
         self.update()
 
     def update(self):
@@ -173,7 +185,7 @@ class BetWidget(QWidget):
         self.close_button.setFixedWidth(15)
         self.close_button.clicked.connect(self.closeButtonClicked)
         self.potential_label=QLabel("Potential Returns:")
-        self.potential_returns_value_label=QLabel("0 WGR")
+        self.potential_returns_value_label=QLabel("")
         self.frame=QFrame()
         #self.header_label.setStyleSheet("QLabel { background-color : rgb(250, 218, 221); }")
         self.header_label.setAlignment(Qt.AlignHCenter)
@@ -184,30 +196,38 @@ class BetWidget(QWidget):
         newfont = QFont("Times", 16) 
         self.team_label.setFont(newfont)
         self.selectedOddValue=QLabel("1")
-        self.selectedOddValue.setStyleSheet("background-color: grey; border:1px solid rgb(0, 0, 0); ")
+        self.selectedOddValue.setFixedWidth(150)
         self.selectedOddValue.setAlignment(Qt.AlignHCenter)
+        self.selectedOddValue.setStyleSheet("background-color: grey; border:1px solid rgb(0, 0, 0); ")
+        
         self.potential_label.setAlignment(Qt.AlignHCenter)
         self.potential_returns_value_label.setAlignment(Qt.AlignHCenter)
         self.betting_amount_c=QLineEdit()
+        self.betting_amount_c.setText("0")
+        self.betting_amount_c.setValidator(QDoubleValidator(self.betting_amount_c) )
         self.betting_amount_c.setFixedWidth(180)
         # self.onlyInt = QIntValidator()
         # self.betting_amount_c.setValidator(self.onlyInt)
         self.h=QHBoxLayout()
         self.bet=QPushButton("BET")
         self.bet.setFixedWidth(70)
-        
+        self.bet.clicked.connect(self.betButtonClicked)
         self.header_hbox.addWidget(self.header_label)
         self.header_hbox.addWidget(self.close_button)
         self.vbox_c.addLayout(self.header_hbox)
         self.vbox_c.addWidget(self.yourpick)
         self.vbox_c.addWidget(self.team_label)
-        self.vbox_c.addWidget(self.selectedOddValue)
+        self.vbox_c.addWidget(self.selectedOddValue,alignment=Qt.AlignCenter)
         self.h.addWidget(self.betting_amount_c)
         self.h.addWidget(self.bet)
         self.vbox_c.addLayout(self.h)
         self.vbox_c.addWidget(self.potential_label)
         self.vbox_c.addWidget(self.potential_returns_value_label)
         self.setLayout(self.vbox_c)
+    def betButtonClicked(self):
+        
+        self.betValue=float(self.betting_amount_c.text()) + (((float(self.betting_amount_c.text()) * (float(self.selectedOddValue.text()) -1 ))) *.94 )
+        self.potential_returns_value_label.setText(str("{0:.2f}".format(self.betValue))+" WGR")
 
 class EventWidget(QWidget):
     def __init__(self, parent=None):
@@ -1777,7 +1797,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.eventQListWidget = QListWidget()
         #self.eventQListWidget.setFixedWidth(900)
         
-        #self.eventQListWidget.setMinimumWidth(800)
+        self.eventQListWidget.setMinimumWidth(800)
         self.eventQListWidget.setStyleSheet(" QListWidget::item {margin: 5px; border: 1px solid grey }")
 
         self.betQListWidget = QListWidget()
