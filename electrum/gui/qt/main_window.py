@@ -95,6 +95,7 @@ from .util import (read_QIcon, ColorScheme, text_dialog, icon_path, WaitingDialo
                    filename_field, address_field, char_width_in_lineedit, webopen)
 from .installwizard import WIF_HELP_TEXT
 from .history_list import HistoryList, HistoryModel
+from .betting_history_list import (BettingHistoryList, BettingHistoryModel)
 from .update_checker import UpdateCheck, UpdateCheckThread
 from electrum.bet import PeerlessBet
 
@@ -466,7 +467,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         tabs.addTab(self.send_tab, read_QIcon("tab_send.png"), _('Send'))
         tabs.addTab(self.receive_tab, read_QIcon("tab_receive.png"), _('Receive'))
         tabs.addTab(self.betting_tab, read_QIcon("tab_send.png"), _('Betting'))
-
+        tabs.addTab(self.create_betting_history_tab(), read_QIcon("tab_history.png"), _('Betting History'))
         def add_optional_tab(tabs, tab, icon, description, name):
             tab.tab_icon = icon
             tab.tab_description = description
@@ -1182,6 +1183,16 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.history_model = HistoryModel(self)
         self.history_list = l = HistoryList(self, self.history_model)
         self.history_model.set_view(self.history_list)
+        l.searchable_list = l
+        toolbar = l.create_toolbar(self.config)
+        toolbar_shown = self.config.get('show_toolbar_history', False)
+        l.show_toolbar(toolbar_shown)
+        return self.create_list_tab(l, toolbar)
+        
+    def create_betting_history_tab(self):
+        self.betting_history_model = BettingHistoryModel(self)
+        self.betting_history_list1 = l = BettingHistoryList(self, self.betting_history_model)
+        self.betting_history_model.set_view(self.betting_history_list1)
         l.searchable_list = l
         toolbar = l.create_toolbar(self.config)
         toolbar_shown = self.config.get('show_toolbar_history', False)
