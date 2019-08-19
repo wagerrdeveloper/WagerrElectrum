@@ -502,6 +502,7 @@ class Abstract_Wallet(AddressSynchronizer):
             if to_height is not None and height >= to_height:
                 continue
             tx = self.db.get_transaction(tx_hash)
+            
             item = {
                 'txid': tx_hash,
                 'height': height,
@@ -579,6 +580,116 @@ class Abstract_Wallet(AddressSynchronizer):
             'transactions': out,
             'summary': summary
         }
+
+    @profiler
+    def get_full_betting_history(self, domain=None, from_timestamp=None, to_timestamp=None,
+                         fx=None, show_addresses=False, show_fees=False,
+                         from_height=None, to_height=None):
+        if (from_timestamp is not None or to_timestamp is not None) \
+                and (from_height is not None or to_height is not None):
+            raise Exception('timestamp and block height based filtering cannot be used together')
+        out = []
+        income = 0
+        expenditures = 0
+        capital_gains = Decimal(0)
+        fiat_income = Decimal(0)
+        fiat_expenditures = Decimal(0)
+        h = self.get_history(domain)
+        print("history",h)
+        now = time.time()
+        for tx_hash, tx_mined_status, value, balance in h:
+            timestamp = tx_mined_status.timestamp
+            if from_timestamp and (timestamp or now) < from_timestamp:
+                continue
+            if to_timestamp and (timestamp or now) >= to_timestamp:
+                continue
+            height = tx_mined_status.height
+            if from_height is not None and height < from_height:
+                continue
+            if to_height is not None and height >= to_height:
+                continue
+            tx = self.db.get_transaction(tx_hash)
+            if not(tx.is_betting_tx()):
+                continue
+
+            item = {
+                'txid': tx_hash,
+                'height': height,
+                'confirmations': tx_mined_status.conf,
+                'timestamp': timestamp,
+                'incoming': True if value>0 else False,
+                'value': Satoshis(value),
+                'balance': Satoshis(balance),
+                'date': timestamp_to_datetime(timestamp),
+                'label': self.get_label(tx_hash),
+                'txpos_in_block': tx_mined_status.txpos,
+            }
+            tx_fee = None
+            if show_fees:
+                tx_fee = self.get_tx_fee(tx)
+                item['fee'] = Satoshis(tx_fee) if tx_fee is not None else None
+            if show_addresses:
+                item['inputs'] = list(map(lambda x: dict((k, x[k]) for k in ('prevout_hash', 'prevout_n')), tx.inputs()))
+                item['outputs'] = list(map(lambda x:{'address':x.address, 'value':Satoshis(x.value)},
+                                           tx.get_outputs_for_betting()))
+            # value may be None if wallet is not fully synchronized
+            if value is None:
+                continue
+            # fixme: use in and out values
+            if value < 0:
+                expenditures += -value
+            else:
+                income += value
+            # fiat computations
+            if fx and fx.is_enabled() and fx.get_history_config():
+                fiat_fields = self.get_tx_item_fiat(tx_hash, value, fx, tx_fee)
+                fiat_value = fiat_fields['fiat_value'].value
+                item.update(fiat_fields)
+                if value < 0:
+                    capital_gains += fiat_fields['capital_gain'].value
+                    fiat_expenditures += -fiat_value
+                else:
+                    fiat_income += fiat_value
+            out.append(item)
+        # add summary
+        if out:
+            b, v = out[0]['balance'].value, out[0]['value'].value
+            start_balance = None if b is None or v is None else b - v
+            end_balance = out[-1]['balance'].value
+            if from_timestamp is not None and to_timestamp is not None:
+                start_date = timestamp_to_datetime(from_timestamp)
+                end_date = timestamp_to_datetime(to_timestamp)
+            else:
+                start_date = None
+                end_date = None
+            summary = {
+                'start_date': start_date,
+                'end_date': end_date,
+                'from_height': from_height,
+                'to_height': to_height,
+                'start_balance': Satoshis(start_balance),
+                'end_balance': Satoshis(end_balance),
+                'incoming': Satoshis(income),
+                'outgoing': Satoshis(expenditures)
+            }
+            if fx and fx.is_enabled() and fx.get_history_config():
+                unrealized = self.unrealized_gains(domain, fx.timestamp_rate, fx.ccy)
+                summary['fiat_currency'] = fx.ccy
+                summary['fiat_capital_gains'] = Fiat(capital_gains, fx.ccy)
+                summary['fiat_incoming'] = Fiat(fiat_income, fx.ccy)
+                summary['fiat_outgoing'] = Fiat(fiat_expenditures, fx.ccy)
+                summary['fiat_unrealized_gains'] = Fiat(unrealized, fx.ccy)
+                summary['fiat_start_balance'] = Fiat(fx.historical_value(start_balance, start_date), fx.ccy)
+                summary['fiat_end_balance'] = Fiat(fx.historical_value(end_balance, end_date), fx.ccy)
+                summary['fiat_start_value'] = Fiat(fx.historical_value(COIN, start_date), fx.ccy)
+                summary['fiat_end_value'] = Fiat(fx.historical_value(COIN, end_date), fx.ccy)
+        else:
+            summary = {}
+        return {
+            'transactions': out,
+            'summary': summary
+        }
+
 
     def default_fiat_value(self, tx_hash, fx, value_sat):
         return value_sat / Decimal(COIN) * self.price_at_timestamp(tx_hash, fx.timestamp_rate)

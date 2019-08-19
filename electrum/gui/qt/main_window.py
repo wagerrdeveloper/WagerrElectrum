@@ -504,7 +504,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.payment_request_ok_signal.connect(self.payment_request_ok)
         self.payment_request_error_signal.connect(self.payment_request_error)
         self.history_list.setFocus(True)
-
+        self.betting_history_list.setFocus(True)
         # network callbacks
         if self.network:
             self.network_signal.connect(self.on_network_qt)
@@ -672,6 +672,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             wallet, tx_hash, tx_mined_status = args
             if wallet == self.wallet:
                 self.history_model.update_tx_mined_status(tx_hash, tx_mined_status)
+                self.betting_history_model.update_tx_mined_status(tx_hash, tx_mined_status)
         elif event == 'fee':
             if self.config.is_dynfee():
                 self.fee_slider.update()
@@ -1165,6 +1166,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         if wallet != self.wallet:
             return
         self.history_model.refresh('update_tabs')
+        self.betting_history_model.refresh('update_tabs')
         self.request_list.update()
         self.address_list.update()
         self.utxo_list.update()
@@ -1191,8 +1193,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         
     def create_betting_history_tab(self):
         self.betting_history_model = BettingHistoryModel(self)
-        self.betting_history_list1 = l = BettingHistoryList(self, self.betting_history_model)
-        self.betting_history_model.set_view(self.betting_history_list1)
+        self.betting_history_list = l = BettingHistoryList(self, self.betting_history_model)
+        self.betting_history_model.set_view(self.betting_history_list)
         l.searchable_list = l
         toolbar = l.create_toolbar(self.config)
         toolbar_shown = self.config.get('show_toolbar_history', False)
@@ -2549,6 +2551,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.contacts[address] = ('address', label)
         self.contact_list.update()
         self.history_list.update()
+        self.betting_history_list.update()
         self.update_completions()
         return True
 
@@ -2559,6 +2562,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         for label in labels:
             self.contacts.pop(label)
         self.history_list.update()
+        self.betting_history_list.update()
         self.contact_list.update()
         self.update_completions()
 
@@ -2602,6 +2606,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             if self.question(_('Delete invoice?')):
                 self.invoices.remove(key)
                 self.history_list.update()
+                self.betting_history_list.update()
                 self.invoice_list.update()
                 d.close()
         deleteButton = EnterButton(_('Delete'), do_delete)
@@ -3338,6 +3343,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                             + f' ({len(bad_inputs)}):\n' + msg)
         self.address_list.update()
         self.history_list.update()
+        self.betting_history_list.update()
 
     def import_addresses(self):
         if not self.wallet.can_import_address():
@@ -3360,6 +3366,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.fiat_send_e.setVisible(b)
         self.fiat_receive_e.setVisible(b)
         self.history_list.update()
+        self.betting_history_list.update()
         self.address_list.refresh_headers()
         self.address_list.update()
         self.update_status()
@@ -3411,6 +3418,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                 self.num_zeros = value
                 self.config.set_key('num_zeros', value, True)
                 self.history_list.update()
+                self.betting_history_list.update()
                 self.address_list.update()
         nz.valueChanged.connect(on_nz)
         gui_widgets.append((nz_label, nz))
@@ -3532,6 +3540,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             self.config.set_key('decimal_point', self.decimal_point, True)
             nz.setMaximum(self.decimal_point)
             self.history_list.update()
+            self.betting_history_list.update()
             self.request_list.update()
             self.address_list.update()
             for edit, amount in zip(edits, amounts):
@@ -3733,6 +3742,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             self.fx.set_history_config(checked)
             update_exchanges()
             self.history_model.refresh('on_history')
+            
             if self.fx.is_enabled() and checked:
                 self.fx.trigger_update()
             update_history_capgains_cb()

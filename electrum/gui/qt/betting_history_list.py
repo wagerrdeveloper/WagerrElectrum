@@ -151,6 +151,7 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
                     (conf, -status, -height, -txpos),
                 BettingHistoryColumns.STATUS_TEXT: status_str,
                 BettingHistoryColumns.DESCRIPTION: tx_item['label'],
+                
                 BettingHistoryColumns.COIN_VALUE:  tx_item['value'].value,
                 BettingHistoryColumns.RUNNING_COIN_BALANCE: tx_item['balance'].value,
                 BettingHistoryColumns.FIAT_VALUE:
@@ -238,7 +239,8 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
             selected_row = selected.row()
         fx = self.parent.fx
         if fx: fx.history_used_spot = False
-        r = self.parent.wallet.get_full_history(domain=self.get_domain(), from_timestamp=None, to_timestamp=None, fx=fx)
+        r = self.parent.wallet.get_full_betting_history(domain=self.get_domain(), show_addresses=True,from_timestamp=None, to_timestamp=None, fx=fx)
+        print("r",r)
         self.set_visibility_of_columns()
         if r['transactions'] == list(self.transactions.values()):
             return

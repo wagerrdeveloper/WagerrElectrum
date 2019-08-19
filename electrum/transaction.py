@@ -1177,10 +1177,22 @@ class Transaction:
         sig = privkey.sign_transaction(pre_hash)
         sig = bh2u(sig) + '01'
         return sig
-
+    
+    def is_betting_tx(self):
+        for o in self.outputs():
+            if o.type==TYPE_BET:
+                return True
+            else:
+                return False
+            
     def get_outputs_for_UI(self) -> Sequence[TxOutputForUI]:
         outputs = []
+        print ("print outputs from ui")
         for o in self.outputs():
+            print ("TYPE",o.type)
+            if o.type==TYPE_BET:
+                print("type=bet")
+                continue
             if o.type == TYPE_ADDRESS:
                 addr = o.address
             elif o.type == TYPE_PUBKEY:
@@ -1188,6 +1200,23 @@ class Transaction:
             else:
                 addr = 'SCRIPT ' + o.address
             outputs.append(TxOutputForUI(addr, o.value))      # consider using yield
+        print ("outputs, ui ",outputs)
+        return outputs
+
+    def get_outputs_for_betting(self) -> Sequence[TxOutputForUI]:
+        outputs = []
+        print ("print outputs for betting")
+        for o in self.outputs():
+            print ("hiii")
+            print ("TYPE",o.type)
+            if o.type == TYPE_BET:
+                addr = o.address
+            else:
+                continue
+                
+            
+            outputs.append(TxOutputForUI(addr, o.value))      # consider using yield
+        print ("outputs,betting",outputs)
         return outputs
 
     def has_address(self, addr: str) -> bool:

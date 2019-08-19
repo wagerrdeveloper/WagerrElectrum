@@ -30,6 +30,7 @@ from typing import TYPE_CHECKING, Tuple, Dict
 import threading
 from enum import IntEnum
 from decimal import Decimal
+from electrum.plugins.hw_wallet import plugin
 
 from PyQt5.QtGui import QMouseEvent, QFont, QBrush, QColor
 from PyQt5.QtCore import (Qt, QPersistentModelIndex, QModelIndex, QAbstractItemModel,
@@ -143,6 +144,7 @@ class HistoryModel(QAbstractItemModel, Logger):
             tx_mined_info = self.tx_mined_info_from_tx_item(tx_item)
             status, status_str = self.parent.wallet.get_tx_status(tx_hash, tx_mined_info)
         if role == Qt.UserRole:
+            
             # for sorting
             d = {
                 HistoryColumns.STATUS_ICON:
@@ -151,6 +153,7 @@ class HistoryModel(QAbstractItemModel, Logger):
                     (conf, -status, -height, -txpos),
                 HistoryColumns.STATUS_TEXT: status_str,
                 HistoryColumns.DESCRIPTION: tx_item['label'],
+                
                 HistoryColumns.COIN_VALUE:  tx_item['value'].value,
                 HistoryColumns.RUNNING_COIN_BALANCE: tx_item['balance'].value,
                 HistoryColumns.FIAT_VALUE:
@@ -238,7 +241,8 @@ class HistoryModel(QAbstractItemModel, Logger):
             selected_row = selected.row()
         fx = self.parent.fx
         if fx: fx.history_used_spot = False
-        r = self.parent.wallet.get_full_history(domain=self.get_domain(), from_timestamp=None, to_timestamp=None, fx=fx)
+        r = self.parent.wallet.get_full_history(domain=self.get_domain(), from_timestamp=None,show_addresses=True, to_timestamp=None, fx=fx)
+        
         self.set_visibility_of_columns()
         if r['transactions'] == list(self.transactions.values()):
             return
