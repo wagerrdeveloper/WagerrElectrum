@@ -180,6 +180,9 @@ class BetWidget(QWidget):
 
     def set_labels(self):
         self.header_label=QLabel("")
+        self.event_id_bet=""
+        self.outcome_bet=0
+        
         self.header_hbox=QHBoxLayout()
         self.header_hbox.setSpacing(0)
         self.close_button=QPushButton("x")
@@ -226,7 +229,7 @@ class BetWidget(QWidget):
         self.vbox_c.addWidget(self.potential_returns_value_label)
         self.setLayout(self.vbox_c)
     def betButtonClicked(self):
-        
+        self.parent.do_bet(a=self)
         self.betValue=float(self.betting_amount_c.text()) + (((float(self.betting_amount_c.text()) * (float(self.selectedOddValue.text()) -1 ))) *.94 )
         self.potential_returns_value_label.setText(str("{0:.2f}".format(self.betValue))+" WGR")
 
@@ -244,9 +247,11 @@ class EventWidget(QWidget):
         
     def homeButtonClicked(self):
         print("button clicked for item : ",self.MoneyLineHomeButton.text())
-        self.parent.do_bet()
+        #self.parent.do_bet()
         self.betWidget=BetWidget(self.parent)
-        self.betWidget.header_label.setText(self.homelabel.text()+" vs "+self.awaylabel.text())        
+        self.betWidget.header_label.setText(self.homelabel.text()+" vs "+self.awaylabel.text())  
+        self.betWidget.event_id_bet=self.eventId
+        self.betWidget.outcome_bet=1      
         #self.betWidget.setFixedHeight(300)
         self.betWidget.team_label.setText(self.homelabel.text())
         self.betWidget.selectedOddValue.setText(self.MoneyLineHomeButton.text())
@@ -306,6 +311,7 @@ class EventWidget(QWidget):
         
 
     def setdata(self,obj):
+        self.eventId=str(obj["event_id"])
         self.tournament=QLabel(obj["tournament"]+" "+str("(Event ID: "+str(obj["event_id"])+")"))
         self.tournament.setStyleSheet("QLabel { background-color : rgb(250, 218, 221);  }")
         self.tournament.setAlignment(Qt.AlignLeft)
@@ -2042,17 +2048,26 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         coins = self.get_coins()
         return outputs, fee_estimator, label, coins
 
-    def read_bet_tab(self):
+    def read_bet_tab(self,a):
         label = 'Betting Transaction'
-        eventId = 40780810
-        outcome = 1
-        amount = 1
+        eventId = int(a.event_id_bet)
+        outcome = int(a.outcome_bet)
+        amount = int(a.betting_amount_c.text())
+        print("eventid",eventId)
+        print("outcome",outcome)
+        print("amount",amount)
+        
+
         pb = PeerlessBet(eventId, outcome)
-        opCode = ''
-        if not(PeerlessBet.ToOpCode(pb,opCode)) :
+        opCode=''
+        isPeerlessBet,opCode=PeerlessBet.ToOpCode(pb)
+        if not(isPeerlessBet) :
             raise Exception('Error converting PeerlessBet to opcode')
-        opCode = "420103026e440a01"
+        #opCode = "420103026e440a01" 
+        #opCode="42010300000bd901"
+        print("inside opcode",opCode)
         unhexOpCode = bytes.fromhex(opCode).decode('utf-8')
+
         print('unhexed : ', unhexOpCode)
         print('read_bet_tab opCode:',opCode)
         outputs = [TxOutput(bitcoin.TYPE_BET, unhexOpCode, amount)]
@@ -2104,11 +2119,11 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
     def do_preview(self):
         self.do_send(preview = True)
 
-    def do_bet(self, preview = False):
+    def do_bet(self,a,preview = False):
         print('do_bet called')
         if run_hook('abort_bet', self):
             return
-        outputs, fee_estimator, tx_desc, coins = self.read_bet_tab()
+        outputs, fee_estimator, tx_desc, coins = self.read_bet_tab(a)
         if self.check_send_tab_outputs_and_show_errors(outputs):
             return
         try:

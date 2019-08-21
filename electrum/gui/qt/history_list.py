@@ -143,6 +143,7 @@ class HistoryModel(QAbstractItemModel, Logger):
         except KeyError:
             tx_mined_info = self.tx_mined_info_from_tx_item(tx_item)
             status, status_str = self.parent.wallet.get_tx_status(tx_hash, tx_mined_info)
+        
         if role == Qt.UserRole:
             
             # for sorting
