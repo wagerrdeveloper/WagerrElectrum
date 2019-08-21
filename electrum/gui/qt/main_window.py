@@ -2075,7 +2075,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         print('unhexed : ', unhexOpCode)
         print('read_bet_tab opCode:',opCode)
         outputs = [TxOutput(bitcoin.TYPE_BET, unhexOpCode, amount)]
-        print ("CREATION type:",outputs[0].type)
+        #print ("CREATION type:",outputs[0].type)
         fee_estimator = self.get_send_fee_estimator()
         coins = self.get_coins()
         return outputs, fee_estimator, label, coins
@@ -2125,20 +2125,20 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.do_send(preview = True)
 
     def do_bet(self,a,preview = False):
-        print('do_bet called')
+        #print('do_bet called')
         if run_hook('abort_bet', self):
             return
         outputs, fee_estimator, tx_desc, coins = self.read_bet_tab(a)
-        print("do_bet outputs",outputs[0].type)
+        #print("do_bet outputs",outputs[0].type)
         if self.check_send_tab_outputs_and_show_errors(outputs):
             return
         try:
             is_sweep = bool(self.tx_external_keypairs)
-            print('do_bet calling make_unsigned_transaction')
+            #print('do_bet calling make_unsigned_transaction')
             tx = self.wallet.make_unsigned_transaction(
                 coins, outputs, self.config, fixed_fee=fee_estimator,
                 is_sweep=is_sweep)
-            print('do_bet calling make_unsigned_transaction done')
+            #print('do_bet calling make_unsigned_transaction done')
         except (NotEnoughFunds, NoDynamicFeeEstimates) as e:
             self.show_message(str(e))
             return

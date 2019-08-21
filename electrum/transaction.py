@@ -1193,20 +1193,20 @@ class Transaction:
     def is_betting_tx(self):
         for o in self.outputs():
             if o.type==TYPE_BET:
-                print("type bet")
+                # print("type bet")
                 return True
             else:
-                print("not type bet TYPE:",o.type)
+                # print("not type bet TYPE:",o.type)
                 return False
             
     def get_outputs_for_UI(self) -> Sequence[TxOutputForUI]:
         outputs = []
         print ("print outputs from ui")
         for o in self.outputs():
-            print("hiii ui")
-            print ("TYPE",o.type)
+            # print("hiii ui")
+            # print ("TYPE",o.type)
             if o.type==TYPE_BET:
-                print("type=bet")
+                # print("type=bet")
                 continue
             if o.type == TYPE_ADDRESS:
                 addr = o.address
@@ -1215,12 +1215,12 @@ class Transaction:
             else:
                 addr = 'SCRIPT ' + o.address
             outputs.append(TxOutputForUI(addr, o.value))      # consider using yield
-        print ("outputs, ui ",outputs)
+        # print ("outputs, ui ",outputs)
         return outputs
 
     def get_outputs_for_betting(self) -> Sequence[TxOutputForUI]:
         outputs = []
-        print ("print outputs for betting")
+        # print ("print outputs for betting")
         for o in self.outputs():
             print ("hiii")
             print ("TYPE",o.type)
@@ -1231,7 +1231,7 @@ class Transaction:
                 
             
             outputs.append(TxOutputForUI(addr, o.value))      # consider using yield
-        print ("outputs,betting",outputs)
+        # print ("outputs,betting",outputs)
         return outputs
 
     def has_address(self, addr: str) -> bool:
