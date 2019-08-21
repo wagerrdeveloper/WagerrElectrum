@@ -502,7 +502,8 @@ class Abstract_Wallet(AddressSynchronizer):
             if to_height is not None and height >= to_height:
                 continue
             tx = self.db.get_transaction(tx_hash)
-            
+            if tx.is_betting_tx():
+                continue
             item = {
                 'txid': tx_hash,
                 'height': height,
@@ -610,6 +611,7 @@ class Abstract_Wallet(AddressSynchronizer):
                 continue
             tx = self.db.get_transaction(tx_hash)
             if not(tx.is_betting_tx()):
+                print ("is not betting tx")
                 continue
 
             item = {

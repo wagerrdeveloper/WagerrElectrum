@@ -272,7 +272,9 @@ class EventWidget(QWidget):
     def awayButtonClicked(self):
         print("button clicked for item : ",self.MoneyLinelAwayButton.text())
         self.betWidget=BetWidget(self.parent)
-        self.betWidget.header_label.setText(self.homelabel.text()+" vs "+self.awaylabel.text())        
+        self.betWidget.header_label.setText(self.homelabel.text()+" vs "+self.awaylabel.text()) 
+        self.betWidget.event_id_bet=self.eventId
+        self.betWidget.outcome_bet=2        
         #self.betWidget.setFixedHeight(180)
         self.betWidget.team_label.setText(self.awaylabel.text())
         self.betWidget.selectedOddValue.setText(self.MoneyLinelAwayButton.text())
@@ -295,7 +297,9 @@ class EventWidget(QWidget):
         print("button clicked for item : ",
         self.MoneyLinelDrawButton.text())
         self.betWidget=BetWidget(self.parent)
-        self.betWidget.header_label.setText(self.homelabel.text()+" vs "+self.awaylabel.text())        
+        self.betWidget.header_label.setText(self.homelabel.text()+" vs "+self.awaylabel.text())  
+        self.betWidget.event_id_bet=self.eventId
+        self.betWidget.outcome_bet=3      
         self.betWidget.team_label.setText(self.drawlabel.text())
         self.betWidget.selectedOddValue.setText(self.MoneyLinelDrawButton.text())
         
@@ -1180,7 +1184,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.invoice_list.update()
         try:
             self.events_data = self.network.run_from_another_thread(self.network.get_events_list(timeout=3))
-            print('Event List: ', self.events_data)
+            #print('Event List: ', self.events_data)
         except Exception as e:
             self.show_message(_("Error getting event list from network") + ":\n" + str(e))
             return
@@ -2071,6 +2075,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         print('unhexed : ', unhexOpCode)
         print('read_bet_tab opCode:',opCode)
         outputs = [TxOutput(bitcoin.TYPE_BET, unhexOpCode, amount)]
+        print ("CREATION type:",outputs[0].type)
         fee_estimator = self.get_send_fee_estimator()
         coins = self.get_coins()
         return outputs, fee_estimator, label, coins
@@ -2124,6 +2129,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         if run_hook('abort_bet', self):
             return
         outputs, fee_estimator, tx_desc, coins = self.read_bet_tab(a)
+        print("do_bet outputs",outputs[0].type)
         if self.check_send_tab_outputs_and_show_errors(outputs):
             return
         try:
@@ -2465,10 +2471,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                   self.fee_e, self.feerate_e]:
             e.setText('')
             e.setFrozen(False)
-        self.eventid_e.is_pr = False
-        for e in [self.eventid_e, self.outcome_e, self.betting_amount_e]:
-            e.setText('')
-            e.setFrozen(False)
+        #self.eventid_e.is_pr = False
+        # for e in [self.eventid_e, self.outcome_e, self.betting_amount_e]:
+        #     e.setText('')
+        #     e.setFrozen(False)
         self.fee_slider.activate()
         self.feerate_e.setAmount(self.config.fee_per_byte())
         self.size_e.setAmount(0)

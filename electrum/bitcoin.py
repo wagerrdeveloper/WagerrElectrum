@@ -408,7 +408,7 @@ def address_to_script(addr: str, *, net=None) -> str:
         return script
     addrtype, hash_160_ = b58_address_to_hash160(addr)
     if addrtype == net.ADDRTYPE_P2PKH:
-        print('address_to_script addrtype == net.ADDRTYPE_P2PKH')
+        #print('address_to_script addrtype == net.ADDRTYPE_P2PKH')
         script = bytes([opcodes.OP_DUP, opcodes.OP_HASH160]).hex()
         script += push_script(bh2u(hash_160_))
         script += bytes([opcodes.OP_EQUALVERIFY, opcodes.OP_CHECKSIG]).hex()

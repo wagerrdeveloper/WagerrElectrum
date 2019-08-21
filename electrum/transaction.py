@@ -408,7 +408,9 @@ def get_address_from_output_script(_bytes: bytes, *, net=None) -> Tuple[int, str
     # p2pkh
     match = [opcodes.OP_DUP, opcodes.OP_HASH160, OPPushDataGeneric(lambda x: x == 20), opcodes.OP_EQUALVERIFY, opcodes.OP_CHECKSIG]
     if match_decoded(decoded, match):
+
         return TYPE_ADDRESS, hash160_to_p2pkh(decoded[2][1], net=net)
+        
 
     # p2sh
     match = [opcodes.OP_HASH160, OPPushDataGeneric(lambda x: x == 20), opcodes.OP_EQUAL]
@@ -426,8 +428,15 @@ def get_address_from_output_script(_bytes: bytes, *, net=None) -> Tuple[int, str
         match = [opcode, OPPushDataGeneric(lambda x: 2 <= x <= 40)]
         if match_decoded(decoded, match):
             return TYPE_ADDRESS, hash_to_segwit_addr(decoded[1][1], witver=witver, net=net)
+    
+    match = [opcodes.OP_RETURN, OPPushDataGeneric(lambda x: 2 <= x <= 40)]
+    if match_decoded(decoded, match):
+        return TYPE_BET,bh2u(_bytes)
 
+   
     return TYPE_SCRIPT, bh2u(_bytes)
+    #return TYPE_BET, bh2u(_bytes)
+
 
 
 def parse_input(vds, full_parse: bool):
@@ -523,6 +532,7 @@ def parse_witness(vds, txin, full_parse: bool):
 
 def parse_output(vds, i):
     d = {}
+    print("parse output")
     d['value'] = vds.read_int64()
     if d['value'] > TOTAL_COIN_SUPPLY_LIMIT_IN_BTC * COIN:
         raise SerializationError('invalid output amount (too large)')
@@ -708,6 +718,8 @@ class Transaction:
         d = deserialize(self.raw, force_full_parse)
         self._inputs = d['inputs']
         self._outputs = [TxOutput(x['type'], x['address'], x['value']) for x in d['outputs']]
+        for o in self._outputs:
+            print("deserialize",o.type)
         self.locktime = d['lockTime']
         self.version = d['version']
         self.is_partial_originally = d['partial']
@@ -1181,14 +1193,17 @@ class Transaction:
     def is_betting_tx(self):
         for o in self.outputs():
             if o.type==TYPE_BET:
+                print("type bet")
                 return True
             else:
+                print("not type bet TYPE:",o.type)
                 return False
             
     def get_outputs_for_UI(self) -> Sequence[TxOutputForUI]:
         outputs = []
         print ("print outputs from ui")
         for o in self.outputs():
+            print("hiii ui")
             print ("TYPE",o.type)
             if o.type==TYPE_BET:
                 print("type=bet")
