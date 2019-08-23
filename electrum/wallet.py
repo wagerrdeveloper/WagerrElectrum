@@ -384,6 +384,8 @@ class Abstract_Wallet(AddressSynchronizer):
         can_bump = False
         label = ''
         tx_hash = tx.txid()
+        print("wallet get_tx_info tx correct one",tx)
+        print("wallet tx_hash",tx_hash)
         tx_mined_status = self.get_tx_height(tx_hash)
         if tx.is_complete():
             if self.db.get_transaction(tx_hash):
@@ -596,7 +598,7 @@ class Abstract_Wallet(AddressSynchronizer):
         fiat_income = Decimal(0)
         fiat_expenditures = Decimal(0)
         h = self.get_history(domain)
-        print("history",h)
+        
         now = time.time()
         for tx_hash, tx_mined_status, value, balance in h:
             timestamp = tx_mined_status.timestamp
@@ -610,6 +612,7 @@ class Abstract_Wallet(AddressSynchronizer):
             if to_height is not None and height >= to_height:
                 continue
             tx = self.db.get_transaction(tx_hash)
+            #print ("history tx_hash",tx_hash)
             if not(tx.is_betting_tx()):
                 print ("is not betting tx")
                 continue

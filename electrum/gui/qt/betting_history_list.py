@@ -85,7 +85,14 @@ class BettingHistoryColumns(IntEnum):
     FIAT_ACQ_PRICE = 6
     FIAT_CAP_GAINS = 7
     TXID = 8
-
+    EVENT_ID=9
+    TRANSACTION_ID=10
+    START_TIME=11
+    BET_OUTCOME=12
+    HOME=13
+    AWAY=14
+    TWGR_AMOUNT=15
+    RESULT=16
 class BettingHistorySortModel(QSortFilterProxyModel):
     def lessThan(self, source_left: QModelIndex, source_right: QModelIndex):
         item1 = self.sourceModel().data(source_left, Qt.UserRole)
@@ -133,10 +140,12 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
         assert index.isValid()
         col = index.column()
         tx_item = self.transactions.value_from_pos(index.row())
+        #print("TX_ITEM",tx_item)
         tx_hash = tx_item['txid']
         conf = tx_item['confirmations']
         txpos = tx_item['txpos_in_block'] or 0
         height = tx_item['height']
+        
         try:
             status, status_str = self.tx_status_cache[tx_hash]
         except KeyError:
@@ -152,6 +161,8 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
                 BettingHistoryColumns.STATUS_TEXT: status_str,
                 BettingHistoryColumns.DESCRIPTION: tx_item['label'],
                 
+                BettingHistoryColumns.TRANSACTION_ID: tx_item['txid'],
+
                 BettingHistoryColumns.COIN_VALUE:  tx_item['value'].value,
                 BettingHistoryColumns.RUNNING_COIN_BALANCE: tx_item['balance'].value,
                 BettingHistoryColumns.FIAT_VALUE:
@@ -240,7 +251,7 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
         fx = self.parent.fx
         if fx: fx.history_used_spot = False
         r = self.parent.wallet.get_full_betting_history(domain=self.get_domain(), show_addresses=True,from_timestamp=None, to_timestamp=None, fx=fx)
-        print("r",r)
+        #print("r",r)
         self.set_visibility_of_columns()
         if r['transactions'] == list(self.transactions.values()):
             return
@@ -341,6 +352,17 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
             BettingHistoryColumns.FIAT_ACQ_PRICE: fiat_acq_title,
             BettingHistoryColumns.FIAT_CAP_GAINS: fiat_cg_title,
             BettingHistoryColumns.TXID: 'TXID',
+            BettingHistoryColumns.EVENT_ID:_('Event_id'),
+            BettingHistoryColumns.TRANSACTION_ID:_('Transaction_id'),
+            BettingHistoryColumns.START_TIME:_('Start_Time'),
+            BettingHistoryColumns.BET_OUTCOME:_('Bet_Outcome'),
+            BettingHistoryColumns.HOME:_('Home'),
+            BettingHistoryColumns.AWAY:_('Away'),
+            BettingHistoryColumns.TWGR_AMOUNT:_('tWGR_Amount'),
+            BettingHistoryColumns.RESULT:_('Result')
+
+
+
         }[section]
 
     def flags(self, idx):
@@ -365,7 +387,7 @@ class BettingHistoryList(MyTreeView, AcceptFileDragDrop):
     def tx_item_from_proxy_row(self, proxy_row):
         hm_idx = self.model().mapToSource(self.model().index(proxy_row, 0))
         return self.hm.transactions.value_from_pos(hm_idx.row())
-
+    
     def should_hide(self, proxy_row):
         if self.start_timestamp and self.end_timestamp:
             tx_item = self.tx_item_from_proxy_row(proxy_row)

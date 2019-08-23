@@ -254,6 +254,7 @@ def match_decoded(decoded, to_match):
     if decoded is None:
         return False
     if len(decoded) != len(to_match):
+        #print("length does not match")
         return False
     for i in range(len(decoded)):
         to_match_item = to_match[i]
@@ -429,9 +430,15 @@ def get_address_from_output_script(_bytes: bytes, *, net=None) -> Tuple[int, str
         if match_decoded(decoded, match):
             return TYPE_ADDRESS, hash_to_segwit_addr(decoded[1][1], witver=witver, net=net)
     
-    match = [opcodes.OP_RETURN, OPPushDataGeneric(lambda x: 2 <= x <= 40)]
+    match = [opcodes.OP_RETURN, OPPushDataGeneric(lambda x: 2 <= x <= 16)]
+    
     if match_decoded(decoded, match):
-        return TYPE_BET,bh2u(_bytes)
+        str=bh2u(_bytes)
+        _bytes=_bytes[2:]
+        str1=str[4:]
+        # print("In Bet:",bh2u(_bytes))
+        # print("spliced bit",str1)
+        return TYPE_BET, bh2u(_bytes)
 
    
     return TYPE_SCRIPT, bh2u(_bytes)
@@ -540,6 +547,8 @@ def parse_output(vds, i):
         raise SerializationError('invalid output amount (negative)')
     scriptPubKey = vds.read_bytes(vds.read_compact_size())
     d['type'], d['address'] = get_address_from_output_script(scriptPubKey)
+    # print("parse_output d['address']=",d['address'])
+    # print("parse_output scriptPubKey",scriptPubKey)
     d['scriptPubKey'] = bh2u(scriptPubKey)
     d['prevout_n'] = i
     return d
@@ -572,6 +581,7 @@ def deserialize(raw: str, force_full_parse=False) -> dict:
     d['inputs'] = [parse_input(vds, full_parse=full_parse) for i in range(n_vin)]
     n_vout = vds.read_compact_size()
     d['outputs'] = [parse_output(vds, i) for i in range(n_vout)]
+    #print("deserialize d['outputs']=",d['outputs'])
     if is_segwit:
         for i in range(n_vin):
             txin = d['inputs'][i]
@@ -716,6 +726,7 @@ class Transaction:
         if self._inputs is not None:
             return
         d = deserialize(self.raw, force_full_parse)
+        #print("deserialize d[outputs]",d['outputs'])
         self._inputs = d['inputs']
         self._outputs = [TxOutput(x['type'], x['address'], x['value']) for x in d['outputs']]
         for o in self._outputs:
@@ -747,6 +758,7 @@ class Transaction:
         elif output_type == TYPE_PUBKEY:
             return bitcoin.public_key_to_p2pk_script(addr)
         elif output_type == TYPE_BET:
+            #print("transaction::pay_script type_bet")
             return bitcoin.address_to_bet_script(addr)
         else:
             raise TypeError('Unknown output type')
@@ -973,6 +985,7 @@ class Transaction:
     @classmethod
     def serialize_output(cls, output: TxOutput) -> str:
         s = int_to_hex(output.value, 8)
+        #print("s length",len(s))
         script = cls.pay_script(output.type, output.address)
         s += var_int(len(script)//2)
         s += script
@@ -1037,7 +1050,10 @@ class Transaction:
         inputs = self.inputs()
         outputs = self.outputs()
         txins = var_int(len(inputs)) + ''.join(self.serialize_input(txin, self.input_script(txin, estimate_size)) for txin in inputs)
+        # for o in outputs:
+        #     print ("self.serialize_output(o):  ",self.serialize_output(o))
         txouts = var_int(len(outputs)) + ''.join(self.serialize_output(o) for o in outputs)
+
         use_segwit_ser_for_estimate_size = estimate_size and self.is_segwit(guess_for_address=True)
         use_segwit_ser_for_actual_use = not estimate_size and \
                                         (self.is_segwit() or any(txin['type'] == 'address' for txin in inputs))
@@ -1045,9 +1061,19 @@ class Transaction:
         if witness and use_segwit_ser:
             marker = '00'
             flag = '01'
+            # print("witness")
             witness = ''.join(self.serialize_witness(x, estimate_size) for x in inputs)
             return nVersion + marker + flag + txins + txouts + witness + nLocktime
         else:
+            
+            # print("inputs",inputs)
+            # print ("outputs",outputs)
+            # print ("len(outputs)",var_int(len(outputs)))
+            # print("no witness")
+            # print ("nVersion: ",nVersion)
+            # print ("txins: ",txins)
+            # print ("txouts: ",txouts)
+            # print ("nlocktime: ",nLocktime)
             return nVersion + txins + txouts + nLocktime
 
     def txid(self):
@@ -1056,6 +1082,11 @@ class Transaction:
         if not all_segwit and not self.is_complete():
             return None
         ser = self.serialize_to_network(witness=False)
+        # print("ser",ser)
+        # print("bfh",bfh(ser))
+        # print("bfh",bh2u(sha256d(bfh(ser))))
+        # print ("bh2u(sha256d(bfh(ser))[::-1])",bh2u(sha256d(bfh(ser))[::-1]))
+
         return bh2u(sha256d(bfh(ser))[::-1])
 
     def wtxid(self):
@@ -1063,6 +1094,7 @@ class Transaction:
         if not self.is_complete():
             return None
         ser = self.serialize_to_network(witness=True)
+        
         return bh2u(sha256d(bfh(ser))[::-1])
 
     def add_inputs(self, inputs):
@@ -1222,8 +1254,8 @@ class Transaction:
         outputs = []
         # print ("print outputs for betting")
         for o in self.outputs():
-            print ("hiii")
-            print ("TYPE",o.type)
+            #print ("hiii")
+            #print ("TYPE",o.type)
             if o.type == TYPE_BET:
                 addr = o.address
             else:

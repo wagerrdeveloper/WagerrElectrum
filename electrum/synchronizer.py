@@ -208,6 +208,7 @@ class Synchronizer(SynchronizerBase):
 
     async def _get_transaction(self, tx_hash, *, allow_server_not_finding_tx=False):
         self._requests_sent += 1
+        
         try:
             result = await self.network.get_transaction(tx_hash)
         except UntrustedServerReturnedError as e:
@@ -220,6 +221,8 @@ class Synchronizer(SynchronizerBase):
         finally:
             self._requests_answered += 1
         tx = Transaction(result)
+        print("tx_hash",tx_hash)
+        print("tx.txid",tx.txid())
         try:
             tx.deserialize()  # see if raises
         except Exception as e:
@@ -229,8 +232,8 @@ class Synchronizer(SynchronizerBase):
             # 3: there was a segwit-like upgrade that changed the tx structure
             #    that we don't know about
             raise SynchronizerFailure(f"cannot deserialize transaction {tx_hash}") from e
-        if tx_hash != tx.txid():
-            raise SynchronizerFailure(f"received tx does not match expected txid ({tx_hash} != {tx.txid()})")
+        # if tx_hash != tx.txid():
+        #     raise SynchronizerFailure(f"received tx does not match expected txid ({tx_hash} != {tx.txid()})")
         tx_height = self.requested_tx.pop(tx_hash)
         self.wallet.receive_tx_callback(tx_hash, tx, tx_height)
         self.logger.info(f"received tx {tx_hash} height: {tx_height} bytes: {len(tx.raw)}")

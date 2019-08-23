@@ -2074,7 +2074,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
 
         print('unhexed : ', unhexOpCode)
         print('read_bet_tab opCode:',opCode)
-        outputs = [TxOutput(bitcoin.TYPE_BET, unhexOpCode, amount)]
+        outputs = [TxOutput(bitcoin.TYPE_BET, opCode, amount)]
         #print ("CREATION type:",outputs[0].type)
         fee_estimator = self.get_send_fee_estimator()
         coins = self.get_coins()

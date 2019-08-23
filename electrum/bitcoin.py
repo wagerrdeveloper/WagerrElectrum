@@ -390,8 +390,13 @@ def script_to_address(script: str, *, net=None) -> str:
 
 def address_to_bet_script(addr: str, *, net=None) -> str:
     script = opcodes.OP_RETURN.hex()
+    #print("address_to_bet_script: opcodes.OPRETURN.hex: ",script)
     addrhex = bytes(addr,'utf-8').hex()
-    script += push_script(addrhex)
+    #print("address: ",addr)
+    #print("addrhex :  ",addrhex)
+    script += push_script(addr)
+    #script += push_script(addrhex)
+    # print("push_script(addrhex)",push_script(addrhex))
     print('Bet ScriptPubKey: ',script)
     return script
 
