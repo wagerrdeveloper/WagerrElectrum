@@ -106,7 +106,7 @@ class EventListView(QListView):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        #self.selectedSport = "All Events"
+        
         self.selectedSport = ""
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
 

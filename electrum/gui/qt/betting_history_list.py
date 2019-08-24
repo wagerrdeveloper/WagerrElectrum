@@ -25,11 +25,13 @@
 
 import os
 import datetime
+import time
 from datetime import date
 from typing import TYPE_CHECKING, Tuple, Dict
 import threading
 from enum import IntEnum
 from decimal import Decimal
+from electrum.bet import PeerlessBet
 
 from PyQt5.QtGui import QMouseEvent, QFont, QBrush, QColor
 from PyQt5.QtCore import (Qt, QPersistentModelIndex, QModelIndex, QAbstractItemModel,
@@ -74,6 +76,10 @@ TX_ICONS = [
     "clock5.png",
     "confirmed.png",
 ]
+OUTCOME={1:"Money Line Home",
+         2:"Money Line Away",
+         3:"Money Line Draw"
+}
 
 class BettingHistoryColumns(IntEnum):
     STATUS_ICON = 0
@@ -140,7 +146,32 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
         assert index.isValid()
         col = index.column()
         tx_item = self.transactions.value_from_pos(index.row())
+        opCode=tx_item['outputs'][0]['address']
+        twgr_amount=tx_item['outputs'][0]['value'].value
+        #print("data twgr",twgr_amount)
+        x=bytes.fromhex(opCode).decode('utf-8')
+        isPeerlessBet,pb = PeerlessBet.FromOpCode(x)
+        #print("pb",pb.eventId,pb.outcomeType)
+        #print("data tx_item",tx_item)
         #print("TX_ITEM",tx_item)
+        eventId=pb.eventId
+        outcomeType=pb.outcomeType
+        data1=self.parent.events_data
+        #print("data",data)
+        eventTime=""
+        home=""
+        away=""
+        #print("home",home)
+        if data1:
+
+            for y in data1:
+                if eventId == y['event_id']:
+                    home=y["teams"]["home"]
+                    #print("home",home)
+                    away=y["teams"]["away"]
+                    eventTime=time.strftime('%b %d %I:%M %p', time.localtime(y["starting"]))
+                    break
+
         tx_hash = tx_item['txid']
         conf = tx_item['confirmations']
         txpos = tx_item['txpos_in_block'] or 0
@@ -180,7 +211,7 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
             elif col == BettingHistoryColumns.STATUS_ICON and role == Qt.ToolTipRole:
                 return QVariant(str(conf) + _(" confirmation" + ("s" if conf != 1 else "")))
             elif col > BettingHistoryColumns.DESCRIPTION and role == Qt.TextAlignmentRole:
-                return QVariant(Qt.AlignRight | Qt.AlignVCenter)
+                 return QVariant(Qt.AlignVCenter)
             elif col != BettingHistoryColumns.STATUS_TEXT and role == Qt.FontRole:
                 monospace_font = QFont(MONOSPACE_FONT)
                 return QVariant(monospace_font)
@@ -200,6 +231,25 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
             return QVariant(status_str)
         elif col == BettingHistoryColumns.DESCRIPTION:
             return QVariant(tx_item['label'])
+        elif col == BettingHistoryColumns.EVENT_ID:
+            return QVariant(eventId)
+        elif col == BettingHistoryColumns.TRANSACTION_ID:
+            return QVariant(tx_item['txid'])
+        elif col == BettingHistoryColumns.BET_OUTCOME:
+            return QVariant(OUTCOME[outcomeType])
+        elif col == BettingHistoryColumns.HOME:
+            return QVariant(home)
+        elif col == BettingHistoryColumns.AWAY:
+            return QVariant(away)
+        elif col == BettingHistoryColumns.START_TIME:
+            return QVariant(eventTime)
+        elif col == BettingHistoryColumns.TWGR_AMOUNT:
+            
+            balance_str = self.parent.format_amount(twgr_amount, whitespaces=True)
+            return QVariant(balance_str)
+            return QVariant(twgr_amount)
+        elif col == BettingHistoryColumns.RESULT:
+            return QVariant("Pending")
         elif col == BettingHistoryColumns.COIN_VALUE:
             value = tx_item['value'].value
             v_str = self.parent.format_amount(value, is_diff=True, whitespaces=True)
@@ -288,7 +338,15 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
         def set_visible(col: int, b: bool):
             self.view.showColumn(col) if b else self.view.hideColumn(col)
         # txid
+        
+            
+            
         set_visible(BettingHistoryColumns.TXID, False)
+        set_visible(BettingHistoryColumns.STATUS_TEXT, False)
+        set_visible(BettingHistoryColumns.DESCRIPTION, False)
+        set_visible(BettingHistoryColumns.COIN_VALUE, False)
+        set_visible(BettingHistoryColumns.RUNNING_COIN_BALANCE, False)
+
         # fiat
         history = self.parent.fx.show_history()
         cap_gains = self.parent.fx.get_history_capital_gains_config()
@@ -352,13 +410,13 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
             BettingHistoryColumns.FIAT_ACQ_PRICE: fiat_acq_title,
             BettingHistoryColumns.FIAT_CAP_GAINS: fiat_cg_title,
             BettingHistoryColumns.TXID: 'TXID',
-            BettingHistoryColumns.EVENT_ID:_('Event_id'),
-            BettingHistoryColumns.TRANSACTION_ID:_('Transaction_id'),
-            BettingHistoryColumns.START_TIME:_('Start_Time'),
-            BettingHistoryColumns.BET_OUTCOME:_('Bet_Outcome'),
+            BettingHistoryColumns.EVENT_ID:_('Event ID'),
+            BettingHistoryColumns.TRANSACTION_ID:_('Transaction ID'),
+            BettingHistoryColumns.START_TIME:_('Start Time'),
+            BettingHistoryColumns.BET_OUTCOME:_('Bet Outcome'),
             BettingHistoryColumns.HOME:_('Home'),
             BettingHistoryColumns.AWAY:_('Away'),
-            BettingHistoryColumns.TWGR_AMOUNT:_('tWGR_Amount'),
+            BettingHistoryColumns.TWGR_AMOUNT:_('tWGR Amount'),
             BettingHistoryColumns.RESULT:_('Result')
 
 
@@ -399,7 +457,7 @@ class BettingHistoryList(MyTreeView, AcceptFileDragDrop):
             return False
 
     def __init__(self, parent, model: BettingHistoryModel):
-        super().__init__(parent, self.create_menu, stretch_column=BettingHistoryColumns.DESCRIPTION)
+        super().__init__(parent, self.create_menu, stretch_column=BettingHistoryColumns.TRANSACTION_ID)
         self.hm = model
         self.proxy = BettingHistorySortModel(self)
         self.proxy.setSourceModel(model)
@@ -575,6 +633,7 @@ class BettingHistoryList(MyTreeView, AcceptFileDragDrop):
 
     def show_transaction(self, tx_hash):
         tx = self.wallet.db.get_transaction(tx_hash)
+        print ("show_transaction tx",tx)
         if not tx:
             return
         label = self.wallet.get_label(tx_hash) or None # prefer 'None' if not defined (force tx dialog to hide Description field if missing)
