@@ -346,6 +346,7 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
         set_visible(BettingHistoryColumns.TXID, False)
         set_visible(BettingHistoryColumns.STATUS_TEXT, False)
         set_visible(BettingHistoryColumns.DESCRIPTION, False)
+        set_visible(BettingHistoryColumns.TRANSACTION_ID, False)
         set_visible(BettingHistoryColumns.COIN_VALUE, False)
         set_visible(BettingHistoryColumns.RUNNING_COIN_BALANCE, False)
 

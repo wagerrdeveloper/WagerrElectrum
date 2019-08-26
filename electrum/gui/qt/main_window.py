@@ -211,6 +211,7 @@ class BetWidget(QWidget):
         self.betting_amount_c.setText("0")
         self.betting_amount_c.setValidator(QDoubleValidator(self.betting_amount_c) )
         self.betting_amount_c.setFixedWidth(180)
+        self.betting_amount_c.textChanged.connect(self.betValueChanged)
 
         self.fiat_c = AmountEdit(self.parent.fx.get_currency if self.parent.fx else '')
         if not self.parent.fx or not self.parent.fx.is_enabled():
@@ -243,9 +244,19 @@ class BetWidget(QWidget):
         self.setLayout(self.vbox_c)
     def betButtonClicked(self):
         self.parent.do_bet(a=self)
+        
         self.betValue=float(self.betting_amount_c.text()) + (((float(self.betting_amount_c.text()) * (float(self.selectedOddValue.text()) -1 ))) *.94 )
         self.potential_returns_value_label.setText(str("{0:.2f}".format(self.betValue))+" WGR")
+    def betValueChanged(self):
+        bb=float(0)
+        if self.betting_amount_c.text()=="":
+            bb=float(0)
+        else:
 
+            bb=float(self.betting_amount_c.text())
+        # self.betValue=float(self.betting_amount_c.text()) + (((float(self.betting_amount_c.text()) * (float(self.selectedOddValue.text()) -1 ))) *.94 )
+        self.betValue=bb + (((bb * (float(self.selectedOddValue.text()) -1 ))) *.94 )
+        self.potential_returns_value_label.setText(str("{0:.2f}".format(self.betValue))+" WGR")
 class EventWidget(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent=parent)

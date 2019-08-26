@@ -539,7 +539,7 @@ def parse_witness(vds, txin, full_parse: bool):
 
 def parse_output(vds, i):
     d = {}
-    print("parse output")
+    # print("parse output")
     d['value'] = vds.read_int64()
     if d['value'] > TOTAL_COIN_SUPPLY_LIMIT_IN_BTC * COIN:
         raise SerializationError('invalid output amount (too large)')
@@ -729,8 +729,8 @@ class Transaction:
         #print("deserialize d[outputs]",d['outputs'])
         self._inputs = d['inputs']
         self._outputs = [TxOutput(x['type'], x['address'], x['value']) for x in d['outputs']]
-        for o in self._outputs:
-            print("deserialize",o.type)
+        # for o in self._outputs:
+        #     print("deserialize",o.type)
         self.locktime = d['lockTime']
         self.version = d['version']
         self.is_partial_originally = d['partial']
@@ -1108,12 +1108,18 @@ class Transaction:
         self.BIP69_sort(inputs=False)
 
     def input_value(self) -> int:
+        
+        print("input",sum(x['value'] for x in self.inputs()))
         return sum(x['value'] for x in self.inputs())
 
     def output_value(self) -> int:
+        out=sum(o.value for o in self.outputs())
+        print("output",out)
         return sum(o.value for o in self.outputs())
 
     def get_fee(self) -> int:
+        fee1=self.input_value() - self.output_value()
+        print("fee",fee1)
         return self.input_value() - self.output_value()
 
     def is_final(self):
@@ -1233,7 +1239,7 @@ class Transaction:
             
     def get_outputs_for_UI(self) -> Sequence[TxOutputForUI]:
         outputs = []
-        print ("print outputs from ui")
+        #print ("print outputs from ui")
         for o in self.outputs():
             # print("hiii ui")
             # print ("TYPE",o.type)
