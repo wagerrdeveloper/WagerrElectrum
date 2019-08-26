@@ -32,6 +32,8 @@ import threading
 from enum import IntEnum
 from decimal import Decimal
 from electrum.bet import PeerlessBet
+from electrum import constants
+
 
 from PyQt5.QtGui import QMouseEvent, QFont, QBrush, QColor
 from PyQt5.QtCore import (Qt, QPersistentModelIndex, QModelIndex, QAbstractItemModel,
@@ -399,6 +401,10 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
         fiat_title = 'n/a fiat value'
         fiat_acq_title = 'n/a fiat acquisition price'
         fiat_cg_title = 'n/a fiat capital gains'
+        if constants.net.TESTNET:
+            t_label='tWGR Amount'
+        else:
+            t_label='WGR Amount'
         if fx and fx.show_history():
             fiat_title = '%s '%fx.ccy + _('Value')
             fiat_acq_title = '%s '%fx.ccy + _('Acquisition price')
@@ -419,7 +425,7 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
             BettingHistoryColumns.BET_OUTCOME:_('Bet Outcome'),
             BettingHistoryColumns.HOME:_('Home'),
             BettingHistoryColumns.AWAY:_('Away'),
-            BettingHistoryColumns.TWGR_AMOUNT:_('tWGR Amount'),
+            BettingHistoryColumns.TWGR_AMOUNT:_(t_label),
             BettingHistoryColumns.RESULT:_('Result')
 
 

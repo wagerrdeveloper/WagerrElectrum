@@ -616,7 +616,7 @@ class Abstract_Wallet(AddressSynchronizer):
             tx = self.db.get_transaction(tx_hash)
             #print ("history tx_hash",tx_hash)
             if not(tx.is_betting_tx()):
-                print ("is not betting tx")
+                #print ("is not betting tx")
                 continue
 
             item = {

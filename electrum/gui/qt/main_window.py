@@ -31,6 +31,8 @@ import json
 import shutil
 import weakref
 import csv
+from electrum import constants
+
 from decimal import Decimal
 import base64
 from functools import partial
@@ -778,6 +780,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         except:
             self.logger.info("using default geometry")
             self.setGeometry(100, 100, 840, 400)
+            
 
     def watching_only_changed(self):
         name = "Electrum-Wagerr Testnet" if constants.net.TESTNET else "Electrum-Wagerr"
