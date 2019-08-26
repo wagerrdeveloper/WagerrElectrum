@@ -206,10 +206,23 @@ class BetWidget(QWidget):
         
         self.potential_label.setAlignment(Qt.AlignHCenter)
         self.potential_returns_value_label.setAlignment(Qt.AlignHCenter)
-        self.betting_amount_c=QLineEdit()
+        #self.betting_amount_c=QLineEdit()
+        self.betting_amount_c = BTCAmountEdit(self.parent.get_decimal_point)
         self.betting_amount_c.setText("0")
         self.betting_amount_c.setValidator(QDoubleValidator(self.betting_amount_c) )
         self.betting_amount_c.setFixedWidth(180)
+
+        self.fiat_c = AmountEdit(self.parent.fx.get_currency if self.parent.fx else '')
+        if not self.parent.fx or not self.parent.fx.is_enabled():
+            self.fiat_c.setVisible(False)
+        #grid.addWidget(self.fiat_c, 4, 2)
+        self.betting_amount_c.frozen.connect(
+            lambda: self.fiat_c.setFrozen(self.betting_amount_c.isReadOnly()))
+
+        
+
+
+
         # self.onlyInt = QIntValidator()
         # self.betting_amount_c.setValidator(self.onlyInt)
         self.h=QHBoxLayout()
@@ -2056,7 +2069,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         label = 'Betting Transaction'
         eventId = int(a.event_id_bet)
         outcome = int(a.outcome_bet)
-        amount = int(a.betting_amount_c.text())
+        # amount = int(a.betting_amount_c.text())
+        amount = int(a.betting_amount_c.get_amount())
         print("eventid",eventId)
         print("outcome",outcome)
         print("amount",amount)
@@ -2129,6 +2143,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         if run_hook('abort_bet', self):
             return
         outputs, fee_estimator, tx_desc, coins = self.read_bet_tab(a)
+        print("dobet outputs",outputs)
         #print("do_bet outputs",outputs[0].type)
         if self.check_send_tab_outputs_and_show_errors(outputs):
             return

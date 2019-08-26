@@ -526,6 +526,8 @@ class Abstract_Wallet(AddressSynchronizer):
                 item['inputs'] = list(map(lambda x: dict((k, x[k]) for k in ('prevout_hash', 'prevout_n')), tx.inputs()))
                 item['outputs'] = list(map(lambda x:{'address':x.address, 'value':Satoshis(x.value)},
                                            tx.get_outputs_for_UI()))
+                # item['outputs'] = list(map(lambda x:{'address':x.address, 'value':x.value},
+                #                            tx.get_outputs_for_UI()))
             # value may be None if wallet is not fully synchronized
             if value is None:
                 continue
@@ -637,6 +639,9 @@ class Abstract_Wallet(AddressSynchronizer):
                 item['inputs'] = list(map(lambda x: dict((k, x[k]) for k in ('prevout_hash', 'prevout_n')), tx.inputs()))
                 item['outputs'] = list(map(lambda x:{'address':x.address, 'value':Satoshis(x.value)},
                                            tx.get_outputs_for_betting()))
+                # item['outputs'] = list(map(lambda x:{'address':x.address, 'value':x.value},
+                #                            tx.get_outputs_for_betting()))
+                
             # value may be None if wallet is not fully synchronized
             if value is None:
                 continue
