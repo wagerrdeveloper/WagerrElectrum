@@ -47,9 +47,9 @@ from tzlocal import get_localzone
 from datetime import datetime
 
 from PyQt5.QtGui import QPixmap, QKeySequence, QIcon, QCursor,QDoubleValidator
-from PyQt5.QtCore import Qt, QRect, QStringListModel, QSize, pyqtSignal,QModelIndex,QItemSelectionModel
+from PyQt5.QtCore import Qt, QRect, QStringListModel, QSize, pyqtSignal,QModelIndex,QItemSelectionModel,QSize
 from PyQt5.QtWidgets import (QMessageBox, QComboBox, QSystemTrayIcon, QTabWidget,
-                             QSpinBox, QMenuBar, QFileDialog, QCheckBox, QLabel,
+                             QSpinBox, QMenuBar, QFileDialog, QCheckBox, QLabel,QLayout,
                              QVBoxLayout, QGridLayout, QLineEdit, QTreeWidgetItem,
                              QHBoxLayout, QPushButton, QScrollArea, QTextEdit,QFrame,
                              QShortcut, QMainWindow, QCompleter, QInputDialog,
@@ -100,6 +100,7 @@ from .history_list import HistoryList, HistoryModel
 from .betting_history_list import (BettingHistoryList, BettingHistoryModel)
 from .update_checker import UpdateCheck, UpdateCheckThread
 from electrum.bet import PeerlessBet
+from PyQt5 import QtWidgets
 
 ODDS_DIVISOR = 10000
 
@@ -171,7 +172,32 @@ class BetWidget(QWidget):
         QWidget.__init__(self, parent=parent)
         self.parent = parent
         self.vbox_c=QVBoxLayout()
-        self.setFixedWidth(300)
+
+
+
+
+
+        self.vbox_c.setSizeConstraint(QLayout.SetMinimumSize)
+        
+        
+        
+        
+        self.setFixedWidth(360)
+        
+        #self.resize(300, 600)
+        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
+        # self.setSizePolicy(sizePolicy)
+
+        
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        sizePolicy.setHeightForWidth(True)
+        self.setSizePolicy(sizePolicy)
+
+
+
         #self.setMinimumWidth(300)
         self.set_labels()
 
@@ -190,6 +216,8 @@ class BetWidget(QWidget):
         self.close_button=QPushButton("x")
         self.close_button.setFixedWidth(15)
         self.close_button.clicked.connect(self.closeButtonClicked)
+        self.limit_label=QLabel("Incorect bet amount.Please ensure your bet is between 25-10000 tWGR inclusive ")
+        
         self.potential_label=QLabel("Potential Returns:")
         self.potential_returns_value_label=QLabel("")
         self.frame=QFrame()
@@ -241,14 +269,29 @@ class BetWidget(QWidget):
         self.h.addWidget(self.betting_amount_c)
         self.h.addWidget(self.bet)
         self.vbox_c.addLayout(self.h)
+        self.limit_label.hide()
+        
+        self.limit_label.setWordWrap(True)
+        self.limit_label.setMinimumHeight(50)
+        self.vbox_c.addWidget(self.limit_label)
         self.vbox_c.addWidget(self.potential_label)
         self.vbox_c.addWidget(self.potential_returns_value_label)
         self.setLayout(self.vbox_c)
     def betButtonClicked(self):
-        self.parent.do_bet(a=self)
+        if 25<=float(self.betting_amount_c.text()) and float(self.betting_amount_c.text())<=10000:
+            self.limit_label.hide()
+            self.parent.do_bet(a=self)
+            #self.parent.betQListWidget.setStyleSheet(" QListWidget::item { border: 1px solid black }")
+
+            self.betValue=float(self.betting_amount_c.text()) + (((float(self.betting_amount_c.text()) * (float(self.selectedOddValue.text()) -1 ))) *.94 )
+
+            self.potential_returns_value_label.setText(str("{0:.2f}".format(self.betValue))+" WGR")
+        else:
+            #self.parent.betQListWidget.setStyleSheet(" QListWidget::item { border: 1px solid black }")
+
+            self.limit_label.show()
         
-        self.betValue=float(self.betting_amount_c.text()) + (((float(self.betting_amount_c.text()) * (float(self.selectedOddValue.text()) -1 ))) *.94 )
-        self.potential_returns_value_label.setText(str("{0:.2f}".format(self.betValue))+" WGR")
+        
     def betValueChanged(self):
         bb=float(0)
         if self.betting_amount_c.text()=="":
@@ -287,11 +330,16 @@ class EventWidget(QWidget):
         
         self.parent.betQListWidget.clear()
         betQListWidgetItem = QListWidgetItem(self.parent.betQListWidget)
-        betQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
+        print("sizehint,",self.betWidget.sizeHint())
+        #betQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
+        betQListWidgetItem.setSizeHint(QSize(380,300))
         betQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
+       
 
         self.parent.betQListWidget.addItem(betQListWidgetItem)
         self.parent.betQListWidget.setItemWidget(betQListWidgetItem, self.betWidget)
+        
+
         self.parent.vbox_b.addWidget(self.parent.betQListWidget)
         #self.parent.grid_betting.addLayout(self.parent.vbox_b,0,2)
 
@@ -311,7 +359,10 @@ class EventWidget(QWidget):
         
         self.parent.betQListWidget.clear()
         betQListWidgetItem = QListWidgetItem(self.parent.betQListWidget)
-        betQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
+        #betQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
+        betQListWidgetItem.setSizeHint(QSize(380,300))
+    
+        
         betQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
 
         self.parent.betQListWidget.addItem(betQListWidgetItem)
@@ -331,7 +382,9 @@ class EventWidget(QWidget):
         
         self.parent.betQListWidget.clear()
         betQListWidgetItem = QListWidgetItem(self.parent.betQListWidget)
-        betQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
+        #betQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
+        betQListWidgetItem.setSizeHint(QSize(380,300))
+
         betQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
 
         self.parent.betQListWidget.addItem(betQListWidgetItem)
@@ -1851,9 +1904,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.eventQListWidget.setStyleSheet(" QListWidget::item {margin: 5px; border: 1px solid grey }")
 
         self.betQListWidget = QListWidget()
-        self.betQListWidget.setFixedWidth(300)
-        #self.betQListWidget.setMinimumWidth(300)
-        self.betQListWidget.setStyleSheet(" QListWidget::item {height:100px ; border: 1px solid black }")
+        self.betQListWidget.setFixedWidth(360)
+        #self.betQListWidget.setStyleSheet(" QListWidget::item {height:100px ; border: 1px solid black }")
+        self.betQListWidget.setStyleSheet(" QListWidget::item { border: 1px solid black }")
 
         self.bet_slip=QLabel("BET SLIP")
         self.clear_slip=QPushButton("CLEAR SLIP")
