@@ -260,7 +260,6 @@ class BetWidget(QWidget):
             self.parent.do_bet(a=self)
             #self.parent.betQListWidget.setStyleSheet(" QListWidget::item { border: 1px solid black }")
             self.betValue=float(self.betting_amount_c.text()) + (((float(self.betting_amount_c.text()) * (float(self.selectedOddValue.text()) -1 ))) *.94 )
-            self.potential_returns_value_label.setText(str("{0:.2f}".format(self.betValue))+" WGR")
         else:
             #self.parent.betQListWidget.setStyleSheet(" QListWidget::item { border: 1px solid black }")
             self.limit_label.show()
@@ -272,7 +271,7 @@ class BetWidget(QWidget):
         else:
             bb=float(self.betting_amount_c.text())        
         self.betValue=bb + (((bb * (float(self.selectedOddValue.text()) -1 ))) *.94 )
-        self.potential_returns_value_label.setText(str("{0:.2f}".format(self.betValue))+" WGR")
+        self.potential_returns_value_label.setText(str("{0:.2f}".format(self.betValue))+ ' ' + self.parent.base_unit())
 
 class EventWidget(QWidget):
     def __init__(self, parent=None):
