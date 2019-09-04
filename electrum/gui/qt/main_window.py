@@ -103,6 +103,8 @@ from electrum.bet import PeerlessBet
 from PyQt5 import QtWidgets
 
 ODDS_DIVISOR = 10000
+MIN_BET_AMT  = 25 #WGR
+MAX_BET_AMT  = 10000 #WGR
 
 class EventListView(QListView):
 
@@ -172,38 +174,14 @@ class BetWidget(QWidget):
         QWidget.__init__(self, parent=parent)
         self.parent = parent
         self.vbox_c=QVBoxLayout()
-
-
-
-
-
         self.vbox_c.setSizeConstraint(QLayout.SetMinimumSize)
-        
-        
-        
-        
         self.setFixedWidth(360)
-        
-        #self.resize(300, 600)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
-        # self.setSizePolicy(sizePolicy)
-
-        
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy.setHeightForWidth(True)
         self.setSizePolicy(sizePolicy)
-
-
-
-        #self.setMinimumWidth(300)
         self.set_labels()
 
     def closeButtonClicked(self):
-        #self.setParent(None)
-        #self.close()
         self.parent.betQListWidget.takeItem(0)   
 
     def set_labels(self):
@@ -216,7 +194,7 @@ class BetWidget(QWidget):
         self.close_button=QPushButton("x")
         self.close_button.setFixedWidth(15)
         self.close_button.clicked.connect(self.closeButtonClicked)
-        self.limit_label=QLabel("Incorect bet amount.Please ensure your bet is between 25-10000 tWGR inclusive ")
+        self.limit_label=QLabel("Incorect bet amount. Please ensure your bet is between 25-10000 tWGR inclusive.")
         
         self.potential_label=QLabel("Potential Returns:")
         self.potential_returns_value_label=QLabel("")
@@ -250,10 +228,6 @@ class BetWidget(QWidget):
         self.betting_amount_c.frozen.connect(
             lambda: self.fiat_c.setFrozen(self.betting_amount_c.isReadOnly()))
 
-        
-
-
-
         # self.onlyInt = QIntValidator()
         # self.betting_amount_c.setValidator(self.onlyInt)
         self.h=QHBoxLayout()
@@ -277,20 +251,19 @@ class BetWidget(QWidget):
         self.vbox_c.addWidget(self.potential_label)
         self.vbox_c.addWidget(self.potential_returns_value_label)
         self.setLayout(self.vbox_c)
+    
     def betButtonClicked(self):
-        if 25<=float(self.betting_amount_c.text()) and float(self.betting_amount_c.text())<=10000:
+        betAmtInWgr = self.betting_amount_c.get_amount() / COIN
+        print("Betting Amount : ",betAmtInWgr)
+        if betAmtInWgr>=MIN_BET_AMT and betAmtInWgr<=MAX_BET_AMT:
             self.limit_label.hide()
             self.parent.do_bet(a=self)
             #self.parent.betQListWidget.setStyleSheet(" QListWidget::item { border: 1px solid black }")
-
             self.betValue=float(self.betting_amount_c.text()) + (((float(self.betting_amount_c.text()) * (float(self.selectedOddValue.text()) -1 ))) *.94 )
-
             self.potential_returns_value_label.setText(str("{0:.2f}".format(self.betValue))+" WGR")
         else:
             #self.parent.betQListWidget.setStyleSheet(" QListWidget::item { border: 1px solid black }")
-
             self.limit_label.show()
-        
         
     def betValueChanged(self):
         bb=float(0)
