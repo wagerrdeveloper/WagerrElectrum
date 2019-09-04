@@ -16,19 +16,13 @@ class PeerlessBet:
         self.outcomeType = outcomeType
 
     @staticmethod
-    #def ToOpCode(pb, opCode: str) -> bool :
     def ToOpCode(pb):
         eventId = hex(pb.eventId).lstrip("0x").zfill(8)
-        print('Event Id hex : ', eventId)
         outcomeType = hex(pb.outcomeType).lstrip("0x").zfill(2)
-        print('outcome hex: ',outcomeType)
         opCode = BTX_HEX_PREFIX + "0103" + eventId + outcomeType
-        print('opCode: ',opCode)
-        print('opCode len: ',len(opCode))
         #Ensure peerless bet OpCode string is the correct length.
         if len(opCode) != PB_OP_STRLEN :
             return False,opCode
-        #PeerlessBet.FromOpCode(opCode,pb)
         return True,opCode
 
     @staticmethod

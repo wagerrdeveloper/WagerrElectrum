@@ -1108,13 +1108,9 @@ class Transaction:
         self.BIP69_sort(inputs=False)
 
     def input_value(self) -> int:
-        
-        print("input",sum(x['value'] for x in self.inputs()))
         return sum(x['value'] for x in self.inputs())
 
     def output_value(self) -> int:
-        out=sum(o.value for o in self.outputs())
-        print("output",out)
         return sum(o.value for o in self.outputs())
 
     def get_fee(self) -> int:

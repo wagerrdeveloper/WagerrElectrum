@@ -270,51 +270,36 @@ class BetWidget(QWidget):
         if self.betting_amount_c.text()=="":
             bb=float(0)
         else:
-
-            bb=float(self.betting_amount_c.text())
-        # self.betValue=float(self.betting_amount_c.text()) + (((float(self.betting_amount_c.text()) * (float(self.selectedOddValue.text()) -1 ))) *.94 )
+            bb=float(self.betting_amount_c.text())        
         self.betValue=bb + (((bb * (float(self.selectedOddValue.text()) -1 ))) *.94 )
         self.potential_returns_value_label.setText(str("{0:.2f}".format(self.betValue))+" WGR")
+
 class EventWidget(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent=parent)
         self.parent = parent
         self.grid=QGridLayout()
         self.grid.setContentsMargins(0,0,0,0)
-        # self.grid.setColumnMinimumWidth(0,280)
-        # self.grid.setColumnMinimumWidth(1,280)
-        # self.grid.setColumnMinimumWidth(2,280)
-        # self.grid.setColumnMinimumWidth(3,280)
-
         
     def homeButtonClicked(self):
         print("button clicked for item : ",self.MoneyLineHomeButton.text())
-        #self.parent.do_bet()
+        
         self.betWidget=BetWidget(self.parent)
         self.betWidget.header_label.setText(self.homelabel.text()+" vs "+self.awaylabel.text())  
         self.betWidget.event_id_bet=self.eventId
         self.betWidget.outcome_bet=1      
-        #self.betWidget.setFixedHeight(300)
         self.betWidget.team_label.setText(self.homelabel.text())
         self.betWidget.selectedOddValue.setText(self.MoneyLineHomeButton.text())
-        # for i in reversed(range(self.parent.vbox_b.count())): 
-        #     self.parent.vbox_b.itemAt(i).widget().setParent(None)
-        #self.parent.vbox_b.addWidget(self.betWidget)
         
         self.parent.betQListWidget.clear()
         betQListWidgetItem = QListWidgetItem(self.parent.betQListWidget)
-        print("sizehint,",self.betWidget.sizeHint())
-        #betQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
         betQListWidgetItem.setSizeHint(QSize(380,300))
         betQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
-       
 
         self.parent.betQListWidget.addItem(betQListWidgetItem)
         self.parent.betQListWidget.setItemWidget(betQListWidgetItem, self.betWidget)
-        
 
         self.parent.vbox_b.addWidget(self.parent.betQListWidget)
-        #self.parent.grid_betting.addLayout(self.parent.vbox_b,0,2)
 
     def awayButtonClicked(self):
         print("button clicked for item : ",self.MoneyLinelAwayButton.text())
@@ -322,26 +307,17 @@ class EventWidget(QWidget):
         self.betWidget.header_label.setText(self.homelabel.text()+" vs "+self.awaylabel.text()) 
         self.betWidget.event_id_bet=self.eventId
         self.betWidget.outcome_bet=2        
-        #self.betWidget.setFixedHeight(180)
         self.betWidget.team_label.setText(self.awaylabel.text())
         self.betWidget.selectedOddValue.setText(self.MoneyLinelAwayButton.text())
-        # for i in reversed(range(self.parent.vbox_b.count())): 
-        #     self.parent.vbox_b.itemAt(i).widget().setParent(None)
-        #self.parent.vbox_b.addWidget(self.betWidget)
-        
         
         self.parent.betQListWidget.clear()
         betQListWidgetItem = QListWidgetItem(self.parent.betQListWidget)
-        #betQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
         betQListWidgetItem.setSizeHint(QSize(380,300))
-    
-        
         betQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
 
         self.parent.betQListWidget.addItem(betQListWidgetItem)
         self.parent.betQListWidget.setItemWidget(betQListWidgetItem, self.betWidget)
         self.parent.vbox_b.addWidget(self.parent.betQListWidget)
-        #self.parent.grid_betting.addLayout(self.parent.vbox_b,0,2)
 
     def drawButtonClicked(self):
         print("button clicked for item : ",
@@ -355,16 +331,12 @@ class EventWidget(QWidget):
         
         self.parent.betQListWidget.clear()
         betQListWidgetItem = QListWidgetItem(self.parent.betQListWidget)
-        #betQListWidgetItem.setSizeHint(self.betWidget.sizeHint())
         betQListWidgetItem.setSizeHint(QSize(380,300))
-
         betQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
 
         self.parent.betQListWidget.addItem(betQListWidgetItem)
         self.parent.betQListWidget.setItemWidget(betQListWidgetItem, self.betWidget)
         self.parent.vbox_b.addWidget(self.parent.betQListWidget)
-        #self.parent.grid_betting.addLayout(self.parent.vbox_b,0,2)
-        
 
     def setdata(self,obj):
         self.eventId=str(obj["event_id"])
@@ -2109,27 +2081,21 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         label = 'Betting Transaction'
         eventId = int(a.event_id_bet)
         outcome = int(a.outcome_bet)
-        # amount = int(a.betting_amount_c.text())
         amount = int(a.betting_amount_c.get_amount())
-        print("eventid",eventId)
-        print("outcome",outcome)
-        print("amount",amount)
-        
+        print("Event Id: ",eventId)
+        print("Outcome: ",outcome)
+        print("Amount: ",amount)
 
         pb = PeerlessBet(eventId, outcome)
         opCode=''
         isPeerlessBet,opCode=PeerlessBet.ToOpCode(pb)
         if not(isPeerlessBet) :
             raise Exception('Error converting PeerlessBet to opcode')
-        #opCode = "420103026e440a01" 
-        #opCode="42010300000bd901"
-        print("inside opcode",opCode)
+        
         unhexOpCode = bytes.fromhex(opCode).decode('utf-8')
 
-        print('unhexed : ', unhexOpCode)
-        print('read_bet_tab opCode:',opCode)
+        print('OpCode:',opCode)
         outputs = [TxOutput(bitcoin.TYPE_BET, opCode, amount)]
-        #print ("CREATION type:",outputs[0].type)
         fee_estimator = self.get_send_fee_estimator()
         coins = self.get_coins()
         return outputs, fee_estimator, label, coins
@@ -2183,8 +2149,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         if run_hook('abort_bet', self):
             return
         outputs, fee_estimator, tx_desc, coins = self.read_bet_tab(a)
-        print("dobet outputs",outputs)
-        #print("do_bet outputs",outputs[0].type)
+        
         if self.check_send_tab_outputs_and_show_errors(outputs):
             return
         try:
