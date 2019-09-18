@@ -151,29 +151,22 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
         opCode=tx_item['outputs'][0]['address']
         twgr_amount=tx_item['outputs'][0]['value'].value
         
-        #print("data twgr",twgr_amount)
         x=bytes.fromhex(opCode).decode('utf-8')
         isPeerlessBet,pb = PeerlessBet.FromOpCode(x)
-        #print("pb",pb.eventId,pb.outcomeType)
-        #print("data tx_item",tx_item)
-        #print("TX_ITEM",tx_item)
+        
         eventId=pb.eventId
         outcomeType=pb.outcomeType
-        data1=self.parent.events_data
-        #print("data1:",data1)
-        #print("data",data)
+        
         eventTime=""
         home=""
         away=""
         #print("home",home)
-        if data1:
-
-            for y in data1:
-                if eventId == y['event_id']:
-                    home=y["teams"]["home"]
-                    #print("home",home)
-                    away=y["teams"]["away"]
-                    eventTime=time.strftime('%b %d %I:%M %p', time.localtime(y["starting"]))
+        if self.parent.events_data:
+            for event in self.parent.events_data:
+                if eventId == event['event_id']:
+                    home = event["teams"]["home"]
+                    away = event["teams"]["away"]
+                    eventTime = time.strftime('%b %d %I:%M %p', time.localtime(event["starting"]))
                     break
 
         tx_hash = tx_item['txid']
