@@ -635,7 +635,6 @@ class BettingHistoryList(MyTreeView, AcceptFileDragDrop):
 
     def show_transaction(self, tx_hash):
         tx = self.wallet.db.get_transaction(tx_hash)
-        print ("show_transaction tx",tx)
         if not tx:
             return
         label = self.wallet.get_label(tx_hash) or None # prefer 'None' if not defined (force tx dialog to hide Description field if missing)

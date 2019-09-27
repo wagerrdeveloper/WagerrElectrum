@@ -9,6 +9,7 @@ import time
 from .betwidget import BetWidget
 
 ODDS_DIVISOR = 10000
+POINTS_DIVISOR = 10
 
 class EventWidget(QWidget):
     def __init__(self, parent=None):
@@ -88,35 +89,50 @@ class EventWidget(QWidget):
         self.vbox_event=QVBoxLayout()
         self.vbox_event.addLayout(self.hbox_tournament)
         self.eventTime.setStyleSheet("QLabel { background-color : rgb(250, 218, 221);  }")
+        
         self.MoneyLinelabel=QLabel("   Money Line  ")
-        self.totalhome=QPushButton("-")
-        self.spreadhome=QPushButton("-")
-        self.spreadaway=QPushButton("-")
-        self.totalaway=QPushButton("-")
-        self.spreaddraw=QPushButton("-")
-        self.totaldraw=QPushButton("-")
-        self.totalhome.setEnabled(False)
-        self.spreadhome.setEnabled(False)
-        self.spreadaway.setEnabled(False)
-        self.totalaway.setEnabled(False)
-        self.spreaddraw.setEnabled(False)
-        self.totaldraw.setEnabled(False)
+        self.spread=QLabel("Spread")
+        self.total=QLabel("Total")
+        self.drawlabel=QLabel("Draw")
+
+        self.MoneyLineHomeButton = QPushButton(str(("{0:.2f}".format(obj["odds"][0]["mlHome"]/ODDS_DIVISOR))))
+        self.MoneyLinelAwayButton = QPushButton(str(("{0:.2f}".format(obj["odds"][0]["mlAway"]/ODDS_DIVISOR))))
+        self.MoneyLinelDrawButton = QPushButton(str(("{0:.2f}".format(obj["odds"][0]["mlDraw"]/ODDS_DIVISOR))))
+
+        moneyLineHomeOdds = obj["odds"][0]["mlHome"]/ODDS_DIVISOR;
+        moneyLineAwayOdds = obj["odds"][0]["mlAway"]/ODDS_DIVISOR;
+        
+        homeSpreadSign = ""
+        if moneyLineHomeOdds < moneyLineAwayOdds :
+            homeSpreadSign = "-"
+        else:
+            homeSpreadSign = "+"
+
+        awaySpreadSign = ""
+        if moneyLineHomeOdds > moneyLineAwayOdds :
+            awaySpreadSign = "-"
+        else:
+            awaySpreadSign = "+"
+
+        self.spreadPoints = str(int(obj["odds"][1]["spreadPoints"]/POINTS_DIVISOR))
+        self.spreadhome = QPushButton(homeSpreadSign + self.spreadPoints + "    " + str(("{0:.2f}".format(obj["odds"][1]["spreadHome"]/ODDS_DIVISOR))))        
+        self.spreadaway = QPushButton(awaySpreadSign + self.spreadPoints + "    " + str(("{0:.2f}".format(obj["odds"][1]["spreadAway"]/ODDS_DIVISOR))))
+
+        self.totalPoints = str(int(obj["odds"][2]["totalsPoints"]/POINTS_DIVISOR))
+        overTotalPointText = "(O" + self.totalPoints + ")"
+        underTotalPointText = "(U" + self.totalPoints + ")"
+        self.totalhome = QPushButton(overTotalPointText + "    " + str(("{0:.2f}".format(obj["odds"][2]["totalsOver"]/ODDS_DIVISOR))))
+        self.totalaway = QPushButton(underTotalPointText + "    " + str(("{0:.2f}".format(obj["odds"][2]["totalsUnder"]/ODDS_DIVISOR))))
 
         self.MoneyLinelabel.setAlignment(Qt.AlignHCenter)
         self.homelabel=QLabel(obj["teams"]["home"])
         self.awaylabel=QLabel(obj["teams"]["away"])
-        self.drawlabel=QLabel("Draw")
-        self.spread=QLabel("Spread")
-        self.total=QLabel("Total")
+        
         self.homelabel.setAlignment(Qt.AlignLeft)
         self.awaylabel.setAlignment(Qt.AlignLeft)
         self.drawlabel.setAlignment(Qt.AlignLeft)
         self.spread.setAlignment(Qt.AlignHCenter)
         self.total.setAlignment(Qt.AlignHCenter)
-
-        self.MoneyLineHomeButton = QPushButton(str(("{0:.2f}".format(obj["odds"][0]["mlHome"]/ODDS_DIVISOR))))        
-        self.MoneyLinelAwayButton = QPushButton(str(("{0:.2f}".format(obj["odds"][0]["mlAway"]/ODDS_DIVISOR))))
-        self.MoneyLinelDrawButton = QPushButton(str(("{0:.2f}".format(obj["odds"][0]["mlDraw"]/ODDS_DIVISOR))))
 
         self.grid.addWidget(self.MoneyLinelabel,0,1)
         self.grid.addWidget(self.spread,0,2)
@@ -134,8 +150,8 @@ class EventWidget(QWidget):
 
         self.grid.addWidget(self.drawlabel,3,0)
         self.grid.addWidget(self.MoneyLinelDrawButton,3,1,alignment=Qt.AlignCenter)
-        self.grid.addWidget(self.spreaddraw,3,2,alignment=Qt.AlignCenter)
-        self.grid.addWidget(self.totaldraw,3,3,alignment=Qt.AlignCenter)
+        #self.grid.addWidget(self.spreaddraw,3,2,alignment=Qt.AlignCenter)
+        #self.grid.addWidget(self.totaldraw,3,3,alignment=Qt.AlignCenter)
 
         self.MoneyLineHomeButton.clicked.connect(self.homeButtonClicked)
         self.MoneyLinelAwayButton.clicked.connect(self.awayButtonClicked)

@@ -384,8 +384,6 @@ class Abstract_Wallet(AddressSynchronizer):
         can_bump = False
         label = ''
         tx_hash = tx.txid()
-        print("wallet get_tx_info tx correct one",tx)
-        print("wallet tx_hash",tx_hash)
         tx_mined_status = self.get_tx_height(tx_hash)
         if tx.is_complete():
             if self.db.get_transaction(tx_hash):
