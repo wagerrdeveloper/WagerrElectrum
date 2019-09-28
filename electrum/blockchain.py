@@ -35,6 +35,10 @@ from .logging import get_logger, Logger
 
 _logger = get_logger(__name__)
 
+MIN_POW = 0x00000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+DGW_TARGET_SPACING = int(1 * 60)   # Wagerr : Target difficulty adjust spacing for dark gravity
+DGW_PAST_BLOCKS = 24
+
 MAX_TARGET = 0x00000FFFF0000000000000000000000000000000000000000000000000000000
 
 
@@ -316,7 +320,7 @@ class Blockchain(Logger):
         CHUNK_SIZE = 2016
         start_height = index * CHUNK_SIZE
         prev_hash = self.get_hash(start_height - 1)
-        target = self.get_target(index-1)
+        target = self.get_target((index-1)*2016)
         i = 0
         dataHandled = 0
         while dataHandled < len(data):
@@ -511,35 +515,73 @@ class Blockchain(Logger):
                 raise MissingHeader(height)
             return hash_header(header)
 
-    def get_target(self, index: int) -> int:
+    def get_target(self, height: int, chain=None) -> int:
+        if chain is None:
+            chain = []
         # compute target from chunk x, used in chunk x+1
         if constants.net.TESTNET:
             return 0
-        if index == -1:
+        if height == 0:
             return MAX_TARGET
-        if index < len(self.checkpoints):
-            h, t = self.checkpoints[index]
-            return t
-        # new target
-        first = self.read_header(index * 2016)
-        last = self.read_header(index * 2016 + 2015)
-        if not first or not last:
-            raise MissingHeader()
-        bits = last.get('bits')
-        target = self.bits_to_target(bits)
-        nActualTimespan = last.get('timestamp') - first.get('timestamp')
-        nTargetTimespan = 14 * 24 * 60 * 60
-        nActualTimespan = max(nActualTimespan, nTargetTimespan // 4)
-        nActualTimespan = min(nActualTimespan, nTargetTimespan * 4)
-        new_target = min(MAX_TARGET, (target * nActualTimespan) // nTargetTimespan)
-        # not any target can be represented in 32 bits:
-        new_target = self.bits_to_target(self.target_to_bits(new_target))
+        
+        # if index < len(self.checkpoints):
+        #     h, t = self.checkpoints[index]
+        #     return t
+        
+        return self.get_target_lcc(height, chain)
+    
+    def get_target_lcc(self, height, chain):
+        """ Calculate the difficulty using DGW. """
+
+        def header_from_chain(block_height):
+            header = self.read_header(block_height)
+            if header is not None:
+                return header
+            for hdr in chain:
+                if hdr.get('block_height') == block_height:
+                    return hdr
+
+        assert height > 0, "Using dark gravity before fork block"
+
+        last = header_from_chain(height - 1)
+
+        if last is None or height < DGW_PAST_BLOCKS:
+            return MIN_POW
+
+        end_time = last.get('timestamp')
+
+        for count in [i+1 for i in range(DGW_PAST_BLOCKS)]:
+            # # Skip hive blocks in difficulty calc
+            # while self.hive_header(last):
+            #     last = header_from_chain(last['block_height'] - 1)
+
+            if count <= DGW_PAST_BLOCKS:
+                target = self.bits_to_target(last.get('bits'))
+                if count == 1:
+                    past_target_average = target
+                else:
+                    past_target_average = ((past_target_average * count) + target) // (count + 1)
+
+            if count != DGW_PAST_BLOCKS:
+                last = header_from_chain(last['block_height'] - 1)
+
+        time_span = end_time - last.get('timestamp')
+        target_timespan = DGW_PAST_BLOCKS * DGW_TARGET_SPACING
+
+        time_span = max(time_span, target_timespan // 3)
+        time_span = min(time_span, target_timespan * 3)
+
+        # retarget
+        new_target = past_target_average * time_span
+        new_target = new_target // target_timespan
+        new_target = min(new_target, MIN_POW)
+
         return new_target
 
     @classmethod
     def bits_to_target(cls, bits: int) -> int:
         bitsN = (bits >> 24) & 0xff
-        if not (0x03 <= bitsN <= 0x1d):
+        if not (0x03 <= bitsN <= 0x1e):
             raise Exception("First part of bits should be in [0x03, 0x1d]")
         bitsBase = bits & 0xffffff
         if not (0x8000 <= bitsBase <= 0x7fffff):
@@ -560,7 +602,7 @@ class Blockchain(Logger):
     def chainwork_of_header_at_height(self, height: int) -> int:
         """work done by single header at given height"""
         chunk_idx = height // 2016 - 1
-        target = self.get_target(chunk_idx)
+        target = self.get_target(height)
         work = ((2 ** 256 - target - 1) // (target + 1)) + 1
         return work
 
@@ -606,7 +648,7 @@ class Blockchain(Logger):
         if prev_hash != header.get('prev_block_hash'):
             return False
         try:
-            target = self.get_target(height // 2016 - 1)
+            target = self.get_target(height)
         except MissingHeader:
             return False
         try:
@@ -632,7 +674,7 @@ class Blockchain(Logger):
         n = self.height() // 2016
         for index in range(n):
             h = self.get_hash((index+1) * 2016 -1)
-            target = self.get_target(index)
+            target = self.get_target(index*2016)
             cp.append((h, target))
         return cp
 
