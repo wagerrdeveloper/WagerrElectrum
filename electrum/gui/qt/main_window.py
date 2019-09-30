@@ -1444,87 +1444,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         return w
 
     def create_betting_tab(self):
-        # try:
-        #     self.events_data = self.network.run_from_another_thread(self.network.get_events_list(timeout=10))
-        #     print('Event List: ', self.events_data)
-        # except Exception as e:
-        #     self.show_message(_("Error getting event list from network") + ":\n" + str(e))
-        #     return
-
-        # self.betting_grid = grid = QGridLayout()
-        # grid.setSpacing(8)
-        # grid.setColumnStretch(3, 1)
-
-        # from .paytoedit import PayToEdit
-        # self.betting_amount_e = BTCAmountEdit(self.get_decimal_point)
-        # self.eventid_e = MyLineEdit()
-        # msg = _('Event ID.') + '\n\n'\
-        #       + _('Event ID from Event List')
-        # payto_label = HelpLabel(_('Event ID'), msg)
-        # grid.addWidget(payto_label, 1, 0)
-        # grid.addWidget(self.eventid_e, 1, 1, 1, -1)
-
-        # msg = _('Outcome 1-Home 2-Away 3-Draw')
-        # outcome_label = HelpLabel(_('Outcome'), msg)
-        # grid.addWidget(outcome_label, 2, 0)
-        # self.outcome_e = MyLineEdit()
-        # grid.addWidget(self.outcome_e, 2, 1, 1, -1)
-
-        # msg = _('Amount to be sent.') + '\n\n' \
-        #       + _('The amount will be displayed in red if you do not have enough funds in your wallet.') + ' ' \
-        #       + _('Note that if you have frozen some of your addresses, the available funds will be lower than your total balance.') + '\n\n' \
-        #       + _('Keyboard shortcut: type "!" to send all your coins.')
-        # amount_label = HelpLabel(_('Enter Bet Stake'), msg)
-        # grid.addWidget(amount_label, 3, 0)
-        # grid.addWidget(self.betting_amount_e, 3, 1)
-
-        # self.preview_button = EnterButton(_("Preview"), self.do_preview)
-        # self.preview_button.setToolTip(_('Display the details of your transaction before signing it.'))
-        # self.send_button = EnterButton(_("Send"), self.do_bet)
-        # self.clear_button = EnterButton(_("Clear"), self.do_clear)
-        # buttons = QHBoxLayout()
-        # buttons.addStretch(1)
-        # buttons.addWidget(self.clear_button)
-        # buttons.addWidget(self.preview_button)
-        # buttons.addWidget(self.send_button)
-        # grid.addLayout(buttons, 6, 1, 1, 3)
-
-        # def entry_changed():
-        #     text = ""
-
-        #     amt_color = ColorScheme.DEFAULT
-        #     fee_color = ColorScheme.DEFAULT
-        #     feerate_color = ColorScheme.DEFAULT
-
-        #     if self.not_enough_funds:
-        #         amt_color, fee_color = ColorScheme.RED, ColorScheme.RED
-        #         feerate_color = ColorScheme.RED
-        #         text = _("Not enough funds")
-        #         c, u, x = self.wallet.get_frozen_balance()
-        #         if c+u+x:
-        #             text += " ({} {} {})".format(
-        #                 self.format_amount(c + u + x).strip(), self.base_unit(), _("are frozen")
-        #             )
-
-        #     # blue color denotes auto-filled values
-        #     elif self.fee_e.isModified():
-        #         feerate_color = ColorScheme.BLUE
-        #     elif self.feerate_e.isModified():
-        #         fee_color = ColorScheme.BLUE
-        #     elif self.betting_amount_e.isModified():
-        #         fee_color = ColorScheme.BLUE
-        #         feerate_color = ColorScheme.BLUE
-        #     else:
-        #         amt_color = ColorScheme.BLUE
-        #         fee_color = ColorScheme.BLUE
-        #         feerate_color = ColorScheme.BLUE
-
-        #     self.statusBar().showMessage(text)
-        #     self.betting_amount_e.setStyleSheet(amt_color.as_stylesheet())
-
-        # self.betting_amount_e.textChanged.connect(entry_changed)
-        # # self.fee_e.textChanged.connect(entry_changed)
-        # # self.feerate_e.textChanged.connect(entry_changed)
+        
         self.grid_betting=QGridLayout()
         #self.grid_betting.setColumnStretch(2,4)
         self.grid_betting.setColumnStretch(0,4)
@@ -1542,7 +1462,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.betQListWidget.setStyleSheet(" QListWidget::item { border: 1px solid black }")
 
         self.bet_slip=QLabel("BET SLIP")
+        self.bet_slip.setStyleSheet("QLabel { background-color : rgb(250, 218, 221);  }")
         self.clear_slip=QPushButton("CLEAR SLIP")
+        self.clear_slip.clicked.connect(self.Clear_Clicked)
 
         self.hbox_slip=QHBoxLayout()
         self.hbox_slip.addWidget(self.bet_slip)
@@ -1551,9 +1473,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.betting_grid = grid = QGridLayout()
         self.vbox_b=QVBoxLayout()
         self.vbox_b.addLayout(self.hbox_slip)
-        self.clear_slip.clicked.connect(self.Clear_Clicked)
-                
-
+        
         self.events_list = EventListView(self)
         self.events_list.setFixedWidth(150)
         #self.events_list.setMinimumWidth(150)
@@ -1767,9 +1687,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
 
     def read_bet_tab(self,a):
         label = 'Betting Transaction'
-        eventId = int(a.event_id_bet)
-        outcome = int(a.outcome_bet)
-        amount = int(a.betting_amount_c.get_amount())
+        eventId = int(a.eventIdToBetOn)
+        outcome = int(a.betOutcome)
+        amount = int(a.editBettingAmount.get_amount())
         print("Event Id: ",eventId)
         print("Outcome: ",outcome)
         print("Amount: ",amount)

@@ -16,7 +16,7 @@ class BetWidget(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent=parent)
         self.parent = parent
-        self.vbox_c=QVBoxLayout()
+        self.vbox_c = QVBoxLayout()
         self.vbox_c.setSizeConstraint(QLayout.SetMinimumSize)
         self.setFixedWidth(360)
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
@@ -24,90 +24,95 @@ class BetWidget(QWidget):
         self.setSizePolicy(sizePolicy)
         self.set_labels()
 
-    def closeButtonClicked(self):
+    def btnCloseClicked(self):
         self.parent.betQListWidget.takeItem(0)   
 
     def set_labels(self):
-        self.header_label=QLabel("")
-        self.event_id_bet=""
-        self.outcome_bet=0
+        self.lblTitle = QLabel("")
+        self.eventIdToBetOn = ""
+        self.btnBetOutcome = 0
         
-        self.header_hbox=QHBoxLayout()
+        self.header_hbox = QHBoxLayout()
         self.header_hbox.setSpacing(0)
-        self.close_button=QPushButton("x")
-        self.close_button.setFixedWidth(15)
-        self.close_button.clicked.connect(self.closeButtonClicked)
-        self.limit_label=QLabel("Incorect bet amount. Please ensure your bet is between 25-10000 tWGR inclusive.")
+        self.btnClose = QPushButton("x")
+        self.btnClose.setFixedWidth(15)
+        self.btnClose.clicked.connect(self.btnCloseClicked)
+        self.lblLimitError = QLabel("Incorect bet amount. Please ensure your bet is between 25-10000 WGR inclusive.")
         
-        self.potential_label=QLabel("Potential Returns:")
-        self.potential_returns_value_label=QLabel("")
-        self.frame=QFrame()
-        #self.header_label.setStyleSheet("QLabel { background-color : rgb(250, 218, 221); }")
-        self.header_label.setAlignment(Qt.AlignHCenter)
-        self.yourpick=QLabel("Your Pick:")
-        self.yourpick.setAlignment(Qt.AlignHCenter)
-        self.team_label=QLabel("")
-        self.team_label.setAlignment(Qt.AlignHCenter)
-        newfont = QFont("Times", 16) 
-        self.team_label.setFont(newfont)
-        self.selectedOddValue=QLabel("1")
-        self.selectedOddValue.setFixedWidth(150)
-        self.selectedOddValue.setAlignment(Qt.AlignHCenter)
-        self.selectedOddValue.setStyleSheet("background-color: grey; border:1px solid rgb(0, 0, 0); ")
-        
-        self.potential_label.setAlignment(Qt.AlignHCenter)
-        self.potential_returns_value_label.setAlignment(Qt.AlignHCenter)
+        self.lblPotentialReturn = QLabel("Potential Returns:")
+        self.lblPotentialReturnValue = QLabel("")
+        self.frame = QFrame()
+        #self.lblTitle.setStyleSheet("QLabel { background-color : rgb(250, 218, 221); }")
+        self.lblTitle.setAlignment(Qt.AlignHCenter)
+        self.lblPick = QLabel("Your Pick:")
+        self.lblPick.setAlignment(Qt.AlignHCenter)
+        self.lblTeam = QLabel("")
+        self.lblTeam.setAlignment(Qt.AlignHCenter)
+        font = QFont("Times", 16) 
+        self.lblTeam.setFont(font)
 
-        self.betting_amount_c = BTCAmountEdit(self.parent.get_decimal_point)
-        self.betting_amount_c.setText("0")
-        self.betting_amount_c.setValidator(QDoubleValidator(self.betting_amount_c) )
-        self.betting_amount_c.setFixedWidth(180)
-        self.betting_amount_c.textChanged.connect(self.betValueChanged)
+        self.lblSpreadOrTotal = QLabel("")
+        self.lblSpreadOrTotal.setAlignment(Qt.AlignHCenter)
+
+        self.lblSelectedOddValue = QLabel("1")
+        self.lblSelectedOddValue.setFixedWidth(150)
+        self.lblSelectedOddValue.setAlignment(Qt.AlignHCenter)
+        self.lblSelectedOddValue.setStyleSheet("background-color: grey; border:1px solid rgb(0, 0, 0); ")
+        
+        self.lblPotentialReturn.setAlignment(Qt.AlignHCenter)
+        self.lblPotentialReturnValue.setAlignment(Qt.AlignHCenter)
+
+        self.editBettingAmount = BTCAmountEdit(self.parent.get_decimal_point)
+        self.editBettingAmount.setText("0")
+        self.editBettingAmount.setValidator(QDoubleValidator(self.editBettingAmount) )
+        self.editBettingAmount.setFixedWidth(180)
+        self.editBettingAmount.textChanged.connect(self.betAmountChanged)
 
         self.fiat_c = AmountEdit(self.parent.fx.get_currency if self.parent.fx else '')
         if not self.parent.fx or not self.parent.fx.is_enabled():
             self.fiat_c.setVisible(False)
 
-        self.betting_amount_c.frozen.connect(
-            lambda: self.fiat_c.setFrozen(self.betting_amount_c.isReadOnly()))
+        self.editBettingAmount.frozen.connect(
+            lambda: self.fiat_c.setFrozen(self.editBettingAmount.isReadOnly()))
 
-        self.h=QHBoxLayout()
-        self.bet=QPushButton("BET")
-        self.bet.setFixedWidth(70)
-        self.bet.clicked.connect(self.betButtonClicked)
-        self.header_hbox.addWidget(self.header_label)
-        self.header_hbox.addWidget(self.close_button)
+        self.h = QHBoxLayout()
+        self.btnBet = QPushButton("BET")
+        self.btnBet.setFixedWidth(70)
+        self.btnBet.clicked.connect(self.btnBetClicked)
+        self.header_hbox.addWidget(self.lblTitle)
+        self.header_hbox.addWidget(self.btnClose)
         self.vbox_c.addLayout(self.header_hbox)
-        self.vbox_c.addWidget(self.yourpick)
-        self.vbox_c.addWidget(self.team_label)
-        self.vbox_c.addWidget(self.selectedOddValue,alignment=Qt.AlignCenter)
-        self.h.addWidget(self.betting_amount_c)
-        self.h.addWidget(self.bet)
+        self.vbox_c.addWidget(self.lblPick)
+        self.vbox_c.addWidget(self.lblTeam)
+        self.vbox_c.addWidget(self.lblSpreadOrTotal)
+        self.vbox_c.addWidget(self.lblSelectedOddValue,alignment=Qt.AlignCenter)
+        self.h.addWidget(self.editBettingAmount)
+        self.h.addWidget(self.btnBet)
         self.vbox_c.addLayout(self.h)
-        self.limit_label.hide()
+        self.lblLimitError.hide()
         
-        self.limit_label.setWordWrap(True)
-        self.limit_label.setMinimumHeight(50)
-        self.vbox_c.addWidget(self.limit_label)
-        self.vbox_c.addWidget(self.potential_label)
-        self.vbox_c.addWidget(self.potential_returns_value_label)
+        self.lblLimitError.setWordWrap(True)
+        self.lblLimitError.setMinimumHeight(50)
+        self.vbox_c.addWidget(self.lblLimitError)
+        self.vbox_c.addWidget(self.lblPotentialReturn)
+        self.vbox_c.addWidget(self.lblPotentialReturnValue)
         self.setLayout(self.vbox_c)
     
-    def betButtonClicked(self):
-        betAmtInWgr = self.betting_amount_c.get_amount() / COIN
-        print("Betting Amount : ",betAmtInWgr)
-        if betAmtInWgr>=MIN_BET_AMT and betAmtInWgr<=MAX_BET_AMT:
-            self.limit_label.hide()
-            self.parent.do_bet(a=self)
-            self.betValue=float(self.betting_amount_c.text()) + (((float(self.betting_amount_c.text()) * (float(self.selectedOddValue.text()) -1 ))) *.94 )
+    def btnBetClicked(self):
+        betAmtInWgr = self.editBettingAmount.get_amount() / COIN
+        print("Betting Amount : ", betAmtInWgr)
+        if betAmtInWgr >= MIN_BET_AMT and betAmtInWgr <= MAX_BET_AMT:
+            self.lblLimitError.hide()
+            self.parent.do_bet(a = self)
+            self.btnBetValue = float(self.editBettingAmount.text()) + (((float(self.editBettingAmount.text()) * (float(self.lblSelectedOddValue.text()) -1 ))) *.94 )
         else:
-            self.limit_label.show()
+            self.lblLimitError.show()
         
-    def betValueChanged(self):
-        bb=float(0)
-        if self.betting_amount_c.text()=="":
-            bb=float(0)
+    def betAmountChanged(self):
+        bb = float(0)
+        if self.editBettingAmount.text() == "":
+            bb = float(0)
         else:
-            bb=float(self.betting_amount_c.text())        
-        self.betValue=bb + (((bb * (float(self.selectedOddValue.text()) -1 ))) *.94 )
-        self.potential_returns_value_label.setText(str("{0:.2f}".format(self.betValue))+ ' ' + self.parent.base_unit())
+            bb = float(self.editBettingAmount.text())        
+        self.btnBetValue = bb + (((bb * (float(self.lblSelectedOddValue.text()) -1 ))) *.94 )
+        self.lblPotentialReturnValue.setText(str("{0:.2f}".format(self.btnBetValue))+ ' ' + self.parent.base_unit())

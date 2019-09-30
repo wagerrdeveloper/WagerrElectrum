@@ -15,7 +15,7 @@ class EventListView(QListView):
         super().__init__(parent)
         self.parent = parent
         
-        self.selectedSport = ""
+        self.selectedSport = "All Events"
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         sports = ["All Events", "Football", "Baseball", "Basketball", "Hockey", "Soccer",
@@ -40,7 +40,7 @@ class EventListView(QListView):
         if self.selectedSport=="All Events":
              for x in data:
                  self.cw=EventWidget(self.parent)
-                 self.cw.setdata(x)
+                 self.cw.setData(x)
                  self.cw.setFixedHeight(130)
                  eventQListWidgetItem = QListWidgetItem(self.parent.eventQListWidget)
                  eventQListWidgetItem.setSizeHint(self.cw.sizeHint())
@@ -51,7 +51,7 @@ class EventListView(QListView):
             for x in data:
                 if x["sport"]==self.selectedSport:
                     self.cw=EventWidget(self.parent)
-                    self.cw.setdata(x)
+                    self.cw.setData(x)
                     self.cw.setFixedHeight(130)
                     eventQListWidgetItem = QListWidgetItem(self.parent.eventQListWidget)
                     eventQListWidgetItem.setSizeHint(self.cw.sizeHint())
