@@ -38,6 +38,7 @@ _logger = get_logger(__name__)
 MIN_POW = 0x00000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 DGW_TARGET_SPACING = int(1 * 60)   # Wagerr : Target difficulty adjust spacing for dark gravity
 DGW_PAST_BLOCKS = 24
+LAST_POW_BLOCK = 1001
 
 MAX_TARGET = 0x00000FFFF0000000000000000000000000000000000000000000000000000000
 
@@ -312,15 +313,17 @@ class Blockchain(Logger):
         bits = cls.target_to_bits(target)
         if bits != header.get('bits'):
             raise Exception("bits mismatch: %s vs %s" % (bits, header.get('bits')))
-        block_hash_as_num = int.from_bytes(bfh(_hash), byteorder='big')
-        if block_hash_as_num > target:
-            raise Exception(f"insufficient proof of work: {block_hash_as_num} vs target {target}")
+        
+        if header.get('block_height') <= LAST_POW_BLOCK:
+            block_hash_as_num = int.from_bytes(bfh(_hash), byteorder='big')
+            if block_hash_as_num > target:
+                raise Exception(f"insufficient proof of work: {block_hash_as_num} vs target {target}")
 
     def verify_chunk(self, index: int, data: bytes) -> None:
+        chain = []
         CHUNK_SIZE = 2016
         start_height = index * CHUNK_SIZE
         prev_hash = self.get_hash(start_height - 1)
-        target = self.get_target((index-1)*2016)
         i = 0
         dataHandled = 0
         while dataHandled < len(data):
@@ -331,7 +334,9 @@ class Blockchain(Logger):
                 expected_header_hash = None
             headerSize = constants.net.COIN.get_header_size(data[dataHandled : dataHandled + constants.net.COIN.PRE_ZEROCOIN_HEADER_SIZE])
             raw_header = data[dataHandled : dataHandled + headerSize]
-            header = deserialize_header(raw_header, index*CHUNK_SIZE + i)
+            header = deserialize_header(raw_header, height)
+            chain.append(header)
+            target = self.get_target(height,chain)
             self.verify_header(header, prev_hash, target, expected_header_hash)
             prev_hash = hash_header(header)
             i += 1
@@ -528,9 +533,9 @@ class Blockchain(Logger):
         #     h, t = self.checkpoints[index]
         #     return t
         
-        return self.get_target_lcc(height, chain)
+        return self.get_target_wagerr(height, chain)
     
-    def get_target_lcc(self, height, chain):
+    def get_target_wagerr(self, height, chain):
         """ Calculate the difficulty using DGW. """
 
         def header_from_chain(block_height):
@@ -548,13 +553,32 @@ class Blockchain(Logger):
         if last is None or height < DGW_PAST_BLOCKS:
             return MIN_POW
 
+        if (height-1) > LAST_POW_BLOCK:
+            bnTargetLimit = 0x000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+            nTargetSpacing = 60
+            nTargetTimespan = 60 * 40
+
+            nActualSpacing = 0
+            if height != 0:
+                lastToLast = header_from_chain(height - 2)
+                nActualSpacing = int(last.get('timestamp') - lastToLast.get('timestamp'))
+
+            if nActualSpacing < 0:
+                nActualSpacing = 1
+
+            new_target = self.bits_to_target(last.get('bits'))
+
+            nInterval = nTargetTimespan // nTargetSpacing
+
+            new_target = new_target* ( (nInterval-1) * nTargetSpacing + nActualSpacing + nActualSpacing)
+            new_target = new_target // ((nInterval+1) * nTargetSpacing)
+            if new_target <= 0 or new_target > bnTargetLimit:
+                new_target = bnTargetLimit
+            return new_target
+
         end_time = last.get('timestamp')
 
         for count in [i+1 for i in range(DGW_PAST_BLOCKS)]:
-            # # Skip hive blocks in difficulty calc
-            # while self.hive_header(last):
-            #     last = header_from_chain(last['block_height'] - 1)
-
             if count <= DGW_PAST_BLOCKS:
                 target = self.bits_to_target(last.get('bits'))
                 if count == 1:
@@ -582,7 +606,7 @@ class Blockchain(Logger):
     def bits_to_target(cls, bits: int) -> int:
         bitsN = (bits >> 24) & 0xff
         if not (0x03 <= bitsN <= 0x1e):
-            raise Exception("First part of bits should be in [0x03, 0x1d]")
+            raise Exception("First part of bits should be in [0x03, 0x1e]")
         bitsBase = bits & 0xffffff
         if not (0x8000 <= bitsBase <= 0x7fffff):
             raise Exception("Second part of bits should be in [0x8000, 0x7fffff]")
