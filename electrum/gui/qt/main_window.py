@@ -1700,8 +1700,6 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         if not(isPeerlessBet) :
             raise Exception('Error converting PeerlessBet to opcode')
         
-        unhexOpCode = bytes.fromhex(opCode).decode('utf-8')
-
         print('OpCode:',opCode)
         outputs = [TxOutput(bitcoin.TYPE_BET, opCode, amount)]
         fee_estimator = self.get_send_fee_estimator()

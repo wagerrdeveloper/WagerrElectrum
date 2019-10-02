@@ -758,7 +758,6 @@ class Transaction:
         elif output_type == TYPE_PUBKEY:
             return bitcoin.public_key_to_p2pk_script(addr)
         elif output_type == TYPE_BET:
-            #print("transaction::pay_script type_bet")
             return bitcoin.address_to_bet_script(addr)
         else:
             raise TypeError('Unknown output type')
@@ -1225,22 +1224,16 @@ class Transaction:
         return sig
     
     def is_betting_tx(self):
+        retVal = False
         for o in self.outputs():
-            if o.type==TYPE_BET:
-                # print("type bet")
-                return True
-            else:
-                # print("not type bet TYPE:",o.type)
-                return False
+            if o.type == TYPE_BET:
+                retVal = True
+        return retVal
             
     def get_outputs_for_UI(self) -> Sequence[TxOutputForUI]:
         outputs = []
-        #print ("print outputs from ui")
         for o in self.outputs():
-            # print("hiii ui")
-            # print ("TYPE",o.type)
-            if o.type==TYPE_BET:
-                # print("type=bet")
+            if o.type == TYPE_BET:
                 continue
             if o.type == TYPE_ADDRESS:
                 addr = o.address
@@ -1249,23 +1242,16 @@ class Transaction:
             else:
                 addr = 'SCRIPT ' + o.address
             outputs.append(TxOutputForUI(addr, o.value))      # consider using yield
-        # print ("outputs, ui ",outputs)
         return outputs
 
     def get_outputs_for_betting(self) -> Sequence[TxOutputForUI]:
         outputs = []
-        # print ("print outputs for betting")
         for o in self.outputs():
-            #print ("hiii")
-            #print ("TYPE",o.type)
             if o.type == TYPE_BET:
                 addr = o.address
             else:
                 continue
-                
-            
             outputs.append(TxOutputForUI(addr, o.value))      # consider using yield
-        # print ("outputs,betting",outputs)
         return outputs
 
     def has_address(self, addr: str) -> bool:

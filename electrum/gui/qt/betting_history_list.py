@@ -151,16 +151,15 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
         opCode=tx_item['outputs'][0]['address']
         twgr_amount=tx_item['outputs'][0]['value'].value
         
-        x=bytes.fromhex(opCode).decode('utf-8')
+        x = bytes.fromhex(opCode).decode('cp437')
         isPeerlessBet,pb = PeerlessBet.FromOpCode(x)
         
-        eventId=pb.eventId
-        outcomeType=pb.outcomeType
-        
+        eventId = pb.eventId
+        outcomeType = pb.outcomeType
         eventTime=""
         home=""
         away=""
-        #print("home",home)
+
         if self.parent.events_data:
             for event in self.parent.events_data:
                 if eventId == event['event_id']:
