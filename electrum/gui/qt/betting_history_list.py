@@ -78,9 +78,14 @@ TX_ICONS = [
     "clock5.png",
     "confirmed.png",
 ]
-OUTCOME={1:"Money Line Home",
-         2:"Money Line Away",
-         3:"Money Line Draw"
+OUTCOME = {
+    1 : "Money Line Home",
+    2 : "Money Line Away",
+    3 : "Money Line Draw",
+    4 : "Home to Cover Spread",
+    5 : "Away to Cover Spread",
+    6 : "Total Over",
+    7 : "Total Under"
 }
 
 class BettingHistoryColumns(IntEnum):
