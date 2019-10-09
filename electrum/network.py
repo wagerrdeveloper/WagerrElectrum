@@ -1033,6 +1033,14 @@ class Network(Logger):
 
     @best_effort_reliable
     @catch_server_exceptions
+    async def get_bet(self, tx_hash: str, *, timeout=None) -> str:
+        if not is_hash256_str(tx_hash):
+            raise Exception(f"{repr(tx_hash)} is not a txid")
+        return await self.interface.session.send_request('blockchain.bet.get', [tx_hash],
+                                                         timeout=timeout)
+
+    @best_effort_reliable
+    @catch_server_exceptions
     async def get_events_list(self, timeout=None) -> str:
         return await self.interface.session.send_request('blockchain.event.list', timeout=timeout)
 

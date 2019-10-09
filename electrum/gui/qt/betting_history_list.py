@@ -153,31 +153,19 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
         assert index.isValid()
         col = index.column()
         tx_item = self.transactions.value_from_pos(index.row())
-        opCode=tx_item['outputs'][0]['address']
-        twgr_amount=tx_item['outputs'][0]['value'].value
         
-        x = bytes.fromhex(opCode).decode('cp437')
-        isPeerlessBet,pb = PeerlessBet.FromOpCode(x)
-        
-        eventId = pb.eventId
-        outcomeType = pb.outcomeType
-        eventTime=""
-        home=""
-        away=""
-
-        if self.parent.events_data:
-            for event in self.parent.events_data:
-                if eventId == event['event_id']:
-                    home = event["teams"]["home"]
-                    away = event["teams"]["away"]
-                    eventTime = time.strftime('%b %d %I:%M %p', time.localtime(event["starting"]))
-                    break
-
         tx_hash = tx_item['txid']
         conf = tx_item['confirmations']
         txpos = tx_item['txpos_in_block'] or 0
         height = tx_item['height']
-        
+        eventId = tx_item['event_id']
+        eventTime = time.strftime('%b %d %I:%M %p', time.localtime(tx_item['event_start_time']))
+        home = tx_item['home_team']
+        away = tx_item['away_team']
+        outcomeType = tx_item['team_to_win']
+        twgr_amount = tx_item['bet_amount']
+        result = tx_item['result']
+
         try:
             status, status_str = self.tx_status_cache[tx_hash]
         except KeyError:
@@ -245,12 +233,9 @@ class BettingHistoryModel(QAbstractItemModel, Logger):
         elif col == BettingHistoryColumns.START_TIME:
             return QVariant(eventTime)
         elif col == BettingHistoryColumns.TWGR_AMOUNT:
-            
-            balance_str = self.parent.format_amount(twgr_amount, whitespaces=True)
-            return QVariant(balance_str)
             return QVariant(twgr_amount)
         elif col == BettingHistoryColumns.RESULT:
-            return QVariant("Pending")
+            return QVariant(result)
         elif col == BettingHistoryColumns.COIN_VALUE:
             value = tx_item['value'].value
             v_str = self.parent.format_amount(value, is_diff=True, whitespaces=True)

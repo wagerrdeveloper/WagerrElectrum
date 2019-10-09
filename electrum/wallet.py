@@ -616,6 +616,11 @@ class Abstract_Wallet(AddressSynchronizer):
             if not(tx.is_betting_tx()):
                 #print ("is not betting tx")
                 continue
+            try:
+                bet_data = self.network.run_from_another_thread(self.network.get_bet(tx_hash, timeout=10))
+            except Exception as e:
+                self.logger.info(f'Error getting bet data from network: {repr(e)}')
+                continue
 
             item = {
                 'txid': tx_hash,
@@ -628,6 +633,13 @@ class Abstract_Wallet(AddressSynchronizer):
                 'date': timestamp_to_datetime(timestamp),
                 'label': self.get_label(tx_hash),
                 'txpos_in_block': tx_mined_status.txpos,
+                'event_id': bet_data['event-id'],
+                'event_start_time': bet_data['starting'],
+                'home_team': bet_data['home'] if 'home' in bet_data else '',
+                'away_team': bet_data['away'] if 'away' in bet_data else '',
+                'team_to_win': bet_data['team-to-win'],
+                'bet_amount': bet_data['amount'],
+                'result': bet_data['result']
             }
             tx_fee = None
             if show_fees:
