@@ -616,12 +616,9 @@ class Abstract_Wallet(AddressSynchronizer):
             if not(tx.is_betting_tx()):
                 #print ("is not betting tx")
                 continue
-            try:
-                bet_data = self.network.run_from_another_thread(self.network.get_bet(tx_hash, timeout=10))
-            except Exception as e:
-                self.logger.info(f'Error getting bet data from network: {repr(e)}')
-                continue
 
+            bet_data = self.db.get_bet(tx_hash)
+            
             item = {
                 'txid': tx_hash,
                 'height': height,

@@ -232,10 +232,25 @@ class Synchronizer(SynchronizerBase):
             # 3: there was a segwit-like upgrade that changed the tx structure
             #    that we don't know about
             raise SynchronizerFailure(f"cannot deserialize transaction {tx_hash}") from e
+
         # if tx_hash != tx.txid():
         #     raise SynchronizerFailure(f"received tx does not match expected txid ({tx_hash} != {tx.txid()})")
         tx_height = self.requested_tx.pop(tx_hash)
         self.wallet.receive_tx_callback(tx_hash, tx, tx_height)
+        
+        if tx.is_betting_tx():
+            try:
+                betData = await self.network.get_bet(tx_hash)
+            except UntrustedServerReturnedError as e:
+                # most likely, "No such mempool or blockchain transaction"
+                if allow_server_not_finding_tx:
+                    self.requested_tx.pop(tx_hash)
+                    return
+                else:
+                    raise
+            finally:
+                self._requests_answered += 1
+            self.wallet.receive_bet_callback(tx_hash, betData, tx_height)
         self.logger.info(f"received tx {tx_hash} height: {tx_height} bytes: {len(tx.raw)}")
         # callbacks
         self.wallet.network.trigger_callback('new_transaction', self.wallet, tx)

@@ -288,6 +288,10 @@ class AddressSynchronizer(Logger):
             self.db.add_transaction(tx_hash, tx)
             return True
 
+    def add_bet(self, tx_hash, betData, allow_unrelated=False):
+        self.db.add_bet(tx_hash,betData)
+        return True
+
     def remove_transaction(self, tx_hash):
         def remove_from_spent_outpoints():
             # undo spends in spent_outpoints
@@ -329,6 +333,9 @@ class AddressSynchronizer(Logger):
     def receive_tx_callback(self, tx_hash, tx, tx_height):
         self.add_unverified_tx(tx_hash, tx_height)
         self.add_transaction(tx_hash, tx, allow_unrelated=True)
+    
+    def receive_bet_callback(self, tx_hash, betData, tx_height):
+        self.add_bet(tx_hash, betData, allow_unrelated=True)
 
     def receive_history_callback(self, addr, hist, tx_fees):
         with self.lock:

@@ -605,12 +605,20 @@ class JsonDB(Logger):
         self.transactions[tx_hash] = tx
 
     @modifier
+    def add_bet(self, tx_hash: str, betData) -> None:
+        self.bets[tx_hash] = betData
+
+    @modifier
     def remove_transaction(self, tx_hash) -> Optional[Transaction]:
         return self.transactions.pop(tx_hash, None)
 
     @locked
     def get_transaction(self, tx_hash: str) -> Optional[Transaction]:
         return self.transactions.get(tx_hash)
+
+    @locked
+    def get_bet(self, tx_hash: str):
+        return self.bets.get(tx_hash)
 
     @locked
     def list_transactions(self):
@@ -761,6 +769,7 @@ class JsonDB(Logger):
         self.history = self.get_data_ref('addr_history')  # address -> list of (txid, height)
         self.verified_tx = self.get_data_ref('verified_tx3')  # txid -> (height, timestamp, txpos, header_hash)
         self.tx_fees = self.get_data_ref('tx_fees')
+        self.bets = self.get_data_ref('bets')   # type: Dict[str, BetData]
         # convert raw hex transactions to Transaction objects
         for tx_hash, raw_tx in self.transactions.items():
             self.transactions[tx_hash] = Transaction(raw_tx)
