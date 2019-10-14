@@ -448,7 +448,7 @@ class BettingHistoryList(MyTreeView, AcceptFileDragDrop):
             return False
 
     def __init__(self, parent, model: BettingHistoryModel):
-        super().__init__(parent, self.create_menu, stretch_column=BettingHistoryColumns.TRANSACTION_ID)
+        super().__init__(parent, self.create_menu, stretch_column=BettingHistoryColumns.RESULT)
         self.hm = model
         self.proxy = BettingHistorySortModel(self)
         self.proxy.setSourceModel(model)
