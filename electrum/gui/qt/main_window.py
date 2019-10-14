@@ -899,7 +899,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             self.events_data = self.network.run_from_another_thread(self.network.get_events_list(timeout=3))
             #print('Event List: ', self.events_data)
         except Exception as e:
-            self.show_message(_("Error getting event list from network") + ":\n" + str(e))
+            self.logger.info(f'Error getting event list from network: {repr(e)}')
             return
         self.events_list.update()
         self.update_completions()

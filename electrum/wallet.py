@@ -618,6 +618,13 @@ class Abstract_Wallet(AddressSynchronizer):
                 continue
 
             bet_data = self.db.get_bet(tx_hash)
+            if bet_data['result'] == 'pending':
+                try:
+                    bet_data = self.network.run_from_another_thread(self.network.get_bet(tx_hash, timeout=10))
+                    self.db.add_bet(tx_hash,bet_data)
+                except Exception as e:
+                    self.logger.info(f'Error getting bet data from network: {repr(e)}')
+                    continue
             
             item = {
                 'txid': tx_hash,
