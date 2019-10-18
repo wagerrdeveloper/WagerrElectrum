@@ -17,11 +17,7 @@ class BetWidget(QWidget):
         QWidget.__init__(self, parent=parent)
         self.parent = parent
         self.vbox_c = QVBoxLayout()
-        self.vbox_c.setSizeConstraint(QLayout.SetMinimumSize)
-        self.setFixedWidth(360)
-        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
-        sizePolicy.setHeightForWidth(True)
-        self.setSizePolicy(sizePolicy)
+        self.vbox_c.setSpacing(0)
         self.set_labels()
 
     def btnCloseClicked(self):
@@ -31,41 +27,42 @@ class BetWidget(QWidget):
         self.lblTitle = QLabel("")
         self.eventIdToBetOn = ""
         self.btnBetOutcome = 0
-        
-        self.header_hbox = QHBoxLayout()
-        self.header_hbox.setSpacing(0)
-        self.btnClose = QPushButton("x")
-        self.btnClose.setFixedWidth(15)
+
+        #Header close button
+        self.btnClose = QPushButton("X")
+        self.btnClose.setFixedSize(20,20)
         self.btnClose.clicked.connect(self.btnCloseClicked)
-        self.lblLimitError = QLabel("Incorect bet amount. Please ensure your bet is between 25-10000 WGR inclusive.")
+
+        #Error on Bet Amount Limit
+        self.lblLimitError = QLabel("Incorrect bet amount. Please ensure your bet is between 25-10000 WGR inclusive.")
         
         self.lblPotentialReturn = QLabel("Potential Returns:")
-        self.lblPotentialReturnValue = QLabel("")
-        self.frame = QFrame()
-        #self.lblTitle.setStyleSheet("QLabel { background-color : rgb(250, 218, 221); }")
-        self.lblTitle.setAlignment(Qt.AlignHCenter)
-        self.lblPick = QLabel("Your Pick:")
+        self.lblPotentialReturn.setAlignment(Qt.AlignHCenter)
+        
+        self.lblPotentialReturnValue = QLabel("0 WGR")
+        self.lblPotentialReturnValue.setAlignment(Qt.AlignHCenter)
+
+        self.lblPick = QLabel("YOUR PICK:")
         self.lblPick.setAlignment(Qt.AlignHCenter)
+
         self.lblTeam = QLabel("")
         self.lblTeam.setAlignment(Qt.AlignHCenter)
-        font = QFont("Times", 16) 
-        self.lblTeam.setFont(font)
+        #font = QFont("Times", 16) 
+        #self.lblTeam.setFont(font)
 
         self.lblSpreadOrTotal = QLabel("")
         self.lblSpreadOrTotal.setAlignment(Qt.AlignHCenter)
+        self.lblSpreadOrTotal.hide()
 
         self.lblSelectedOddValue = QLabel("1")
-        self.lblSelectedOddValue.setFixedWidth(150)
+        self.lblSelectedOddValue.setFixedWidth(120)
         self.lblSelectedOddValue.setAlignment(Qt.AlignHCenter)
-        self.lblSelectedOddValue.setStyleSheet("background-color: grey; border:1px solid rgb(0, 0, 0); ")
-        
-        self.lblPotentialReturn.setAlignment(Qt.AlignHCenter)
-        self.lblPotentialReturnValue.setAlignment(Qt.AlignHCenter)
+        self.lblSelectedOddValue.setStyleSheet("background-color: rgb(218, 225, 237);")
 
         self.editBettingAmount = BTCAmountEdit(self.parent.get_decimal_point)
         self.editBettingAmount.setText("0")
-        self.editBettingAmount.setValidator(QDoubleValidator(self.editBettingAmount) )
-        self.editBettingAmount.setFixedWidth(180)
+        self.editBettingAmount.setValidator(QDoubleValidator(self.editBettingAmount))
+        self.editBettingAmount.setFixedWidth(150)
         self.editBettingAmount.textChanged.connect(self.betAmountChanged)
 
         self.fiat_c = AmountEdit(self.parent.fx.get_currency if self.parent.fx else '')
@@ -75,29 +72,35 @@ class BetWidget(QWidget):
         self.editBettingAmount.frozen.connect(
             lambda: self.fiat_c.setFrozen(self.editBettingAmount.isReadOnly()))
 
-        self.h = QHBoxLayout()
         self.btnBet = QPushButton("BET")
-        self.btnBet.setFixedWidth(70)
+        self.btnBet.setFixedWidth(45)
         self.btnBet.clicked.connect(self.btnBetClicked)
-        self.header_hbox.addWidget(self.lblTitle)
-        self.header_hbox.addWidget(self.btnClose)
+        
+        self.lblLimitError.hide()
+        self.lblLimitError.setWordWrap(True)
+        #self.lblLimitError.setMinimumHeight(50)
+
+        self.header_hbox = QHBoxLayout()
+        self.header_hbox.setSpacing(0)
+        self.header_hbox.addWidget(self.lblTitle,alignment=Qt.AlignCenter)
+        self.header_hbox.addWidget(self.btnClose,alignment=Qt.AlignRight)
+
         self.vbox_c.addLayout(self.header_hbox)
-        self.vbox_c.addWidget(self.lblPick)
-        self.vbox_c.addWidget(self.lblTeam)
-        self.vbox_c.addWidget(self.lblSpreadOrTotal)
+        self.vbox_c.addWidget(self.lblPick, alignment=Qt.AlignCenter)
+        self.vbox_c.addWidget(self.lblTeam, alignment=Qt.AlignCenter)
+        #self.vbox_c.addWidget(self.lblSpreadOrTotal, alignment=Qt.AlignHCenter)
         self.vbox_c.addWidget(self.lblSelectedOddValue,alignment=Qt.AlignCenter)
+        
+        self.h = QHBoxLayout()
         self.h.addWidget(self.editBettingAmount)
         self.h.addWidget(self.btnBet)
-        self.vbox_c.addLayout(self.h)
-        self.lblLimitError.hide()
-        
-        self.lblLimitError.setWordWrap(True)
-        self.lblLimitError.setMinimumHeight(50)
+        self.vbox_c.addLayout(self.h, Qt.AlignCenter)
+
         self.vbox_c.addWidget(self.lblLimitError)
         self.vbox_c.addWidget(self.lblPotentialReturn)
         self.vbox_c.addWidget(self.lblPotentialReturnValue)
         self.setLayout(self.vbox_c)
-    
+
     def btnBetClicked(self):
         betAmtInWgr = self.editBettingAmount.get_amount() / COIN
         print("Betting Amount : ", betAmtInWgr)

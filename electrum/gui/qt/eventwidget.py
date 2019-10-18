@@ -56,6 +56,7 @@ class EventWidget(QWidget):
         self.betWidget.betOutcome = 4
         self.betWidget.lblTeam.setText(self.lblHomeTeam.text())
         self.betWidget.lblSpreadOrTotal.setText("Handicap " + self.homeSpreadSign + self.spreadPoints)
+        self.betWidget.lblSpreadOrTotal.show()
         self.betWidget.lblSelectedOddValue.setText(self.spreadHomeOdds)
         self.addBetWidgetItemToList()
 
@@ -67,6 +68,7 @@ class EventWidget(QWidget):
         self.betWidget.betOutcome = 5
         self.betWidget.lblTeam.setText(self.lblHomeTeam.text())
         self.betWidget.lblSpreadOrTotal.setText("Handicap " + self.awaySpreadSign + self.spreadPoints)
+        self.betWidget.lblSpreadOrTotal.show()
         self.betWidget.lblSelectedOddValue.setText(self.spreadAwayOdds)
         self.addBetWidgetItemToList()
 
@@ -78,6 +80,7 @@ class EventWidget(QWidget):
         self.betWidget.betOutcome = 6
         self.betWidget.lblTeam.setText(self.lblHomeTeam.text())
         self.betWidget.lblSpreadOrTotal.setText("Over" + self.totalPoints)
+        self.betWidget.lblSpreadOrTotal.show()
         self.betWidget.lblSelectedOddValue.setText(self.totalsOverOdds)
         self.addBetWidgetItemToList()
 
@@ -89,13 +92,14 @@ class EventWidget(QWidget):
         self.betWidget.betOutcome = 7
         self.betWidget.lblTeam.setText(self.lblHomeTeam.text())
         self.betWidget.lblSpreadOrTotal.setText("Under" + self.totalPoints)
+        self.betWidget.lblSpreadOrTotal.show()
         self.betWidget.lblSelectedOddValue.setText(self.totalsUnderOdds)
         self.addBetWidgetItemToList()
 
     def addBetWidgetItemToList(self):
         betQListWidgetItem = QListWidgetItem(self.parent.betQListWidget)
-        betQListWidgetItem.setSizeHint(QSize(380,300))
-        betQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
+        betQListWidgetItem.setSizeHint(QSize(300,300))
+        #betQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
 
         self.parent.betQListWidget.addItem(betQListWidgetItem)
         self.parent.betQListWidget.setItemWidget(betQListWidgetItem, self.betWidget)

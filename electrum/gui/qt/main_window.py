@@ -1479,9 +1479,25 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         self.eventQListWidget.setStyleSheet(" QListWidget::item {margin: 5px; border: 1px solid grey }")
 
         self.betQListWidget = QListWidget()
-        self.betQListWidget.setFixedWidth(360)
-        #self.betQListWidget.setStyleSheet(" QListWidget::item {height:100px ; border: 1px solid black }")
-        self.betQListWidget.setStyleSheet(" QListWidget::item { border: 1px solid black }")
+        self.betQListWidget.setFixedWidth(320)
+        self.betQListWidget.setStyleSheet(
+            "QListWidget::item {"
+                "border: 1px solid #d9d9d9;"
+                #"border-top-color: transparent;"
+                #"border-bottom-color: transparent;"
+                "margin: 5px;"
+                "}"
+            "QListWidget::item:hover {"
+                "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);"
+                "border: 1px solid #bfcde4;"
+            "}"
+            "QListWidget::item:selected:active{"
+                "background: rgb(250, 218, 221);"
+            "}"
+            # "QListWidget::item:selected:!active {"
+            #     "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6b9be8, stop: 1 #6ea1f1);"
+            # "}"
+        )
 
         self.bet_slip=QLabel("BET SLIP")
         self.bet_slip.setStyleSheet("QLabel { background-color : rgb(250, 218, 221);  }")
