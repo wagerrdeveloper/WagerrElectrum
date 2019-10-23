@@ -129,8 +129,8 @@ class BaseWizard(Logger):
         ])
         wallet_kinds = [
             ('standard',  _("Standard wallet")),
-            ('2fa', _("Wallet with two-factor authentication")),
-            ('multisig',  _("Multi-signature wallet")),
+            #('2fa', _("Wallet with two-factor authentication")),
+            #('multisig',  _("Multi-signature wallet")),
             ('imported',  _("Import Wagerr addresses or private keys")),
         ]
         choices = [pair for pair in wallet_kinds if pair[0] in wallet_types]
@@ -607,7 +607,7 @@ class BaseWizard(Logger):
             ])
         if choices is None:
             choices = [
-                ('create_segwit_seed', _('Segwit')),
+                #('create_segwit_seed', _('Segwit')),
                 ('create_standard_seed', _('Legacy')),
             ]
         self.choice_dialog(title=title, message=message, choices=choices, run_next=self.run)

@@ -130,6 +130,10 @@ class EventWidget(QWidget):
         self.btnMoneyLineAway = QPushButton(str(("{0:.2f}".format(obj["odds"][0]["mlAway"]/ODDS_DIVISOR))))
         self.btnMoneyLineDraw = QPushButton(str(("{0:.2f}".format(obj["odds"][0]["mlDraw"]/ODDS_DIVISOR))))
 
+        self.btnMoneyLineHome.setFixedHeight(25)
+        self.btnMoneyLineAway.setFixedHeight(25)
+        self.btnMoneyLineDraw.setFixedHeight(25)
+
         moneyLineHomeOdds = obj["odds"][0]["mlHome"]/ODDS_DIVISOR
         moneyLineAwayOdds = obj["odds"][0]["mlAway"]/ODDS_DIVISOR
         
@@ -149,7 +153,9 @@ class EventWidget(QWidget):
         self.spreadHomeOdds = str("{0:.2f}".format(obj["odds"][1]["spreadHome"]/ODDS_DIVISOR))
         self.spreadAwayOdds = str("{0:.2f}".format(obj["odds"][1]["spreadAway"]/ODDS_DIVISOR))
         self.btnSpreadHome = QPushButton(self.homeSpreadSign + self.spreadPoints + "    " + self.spreadHomeOdds)
+        self.btnSpreadHome.setFixedHeight(25)
         self.btnSpreadAway = QPushButton(self.awaySpreadSign + self.spreadPoints + "    " + self.spreadAwayOdds)
+        self.btnSpreadAway.setFixedHeight(25)
 
         self.totalPoints = str(int(obj["odds"][2]["totalsPoints"]/POINTS_DIVISOR))
         self.totalsOverOdds = str("{0:.2f}".format(obj["odds"][2]["totalsOver"]/ODDS_DIVISOR))
@@ -158,6 +164,8 @@ class EventWidget(QWidget):
         underTotalPointText = "(U" + self.totalPoints + ")"
         self.btnTotalHome = QPushButton(overTotalPointText + "    " + self.totalsOverOdds)
         self.btnTotalAway = QPushButton(underTotalPointText + "    " + self.totalsUnderOdds)
+        self.btnTotalHome.setFixedHeight(25)
+        self.btnTotalAway.setFixedHeight(25)
 
         self.lblMoneyLineHeading.setAlignment(Qt.AlignHCenter)
         self.lblHomeTeam = QLabel(obj["teams"]["home"])
@@ -197,6 +205,6 @@ class EventWidget(QWidget):
         
         self.btnTotalHome.clicked.connect(self.btnTotalHomeClicked)
         self.btnTotalAway.clicked.connect(self.btnTotalAwayClicked)
-
+        self.grid.setSpacing(10);
         self.vbox_event.addLayout(self.grid)
         self.setLayout(self.vbox_event)

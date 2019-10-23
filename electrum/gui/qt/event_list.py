@@ -41,7 +41,7 @@ class EventListView(QListView):
              for x in data:
                  self.cw=EventWidget(self.parent)
                  self.cw.setData(x)
-                 self.cw.setFixedHeight(130)
+                 self.cw.setFixedHeight(150)
                  eventQListWidgetItem = QListWidgetItem(self.parent.eventQListWidget)
                  eventQListWidgetItem.setSizeHint(self.cw.sizeHint())
                  eventQListWidgetItem.setTextAlignment(Qt.AlignHCenter)
@@ -52,7 +52,7 @@ class EventListView(QListView):
                 if x["sport"]==self.selectedSport:
                     self.cw=EventWidget(self.parent)
                     self.cw.setData(x)
-                    self.cw.setFixedHeight(130)
+                    self.cw.setFixedHeight(150)
                     eventQListWidgetItem = QListWidgetItem(self.parent.eventQListWidget)
                     eventQListWidgetItem.setSizeHint(self.cw.sizeHint())
                     self.parent.eventQListWidget.addItem(eventQListWidgetItem)

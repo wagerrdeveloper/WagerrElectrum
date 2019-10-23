@@ -69,7 +69,7 @@ base_units = {'WGR':8, 'mWGR':5, 'uWGR':2}
 base_units_inverse = inv_dict(base_units)
 base_units_list = ['WGR', 'mWGR', 'uWGR']  # list(dict) does not guarantee order
 
-DECIMAL_POINT_DEFAULT = 5  # mWGR
+DECIMAL_POINT_DEFAULT = 8  # WGR
 
 class UnknownBaseUnit(Exception): pass
 
