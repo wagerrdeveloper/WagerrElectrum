@@ -157,7 +157,7 @@ class EventWidget(QWidget):
         self.btnSpreadAway = QPushButton(self.awaySpreadSign + self.spreadPoints + "    " + self.spreadAwayOdds)
         self.btnSpreadAway.setFixedHeight(25)
 
-        self.totalPoints = str(int(obj["odds"][2]["totalsPoints"]/POINTS_DIVISOR))
+        self.totalPoints = str("{0:.1f}".format(obj["odds"][2]["totalsPoints"]/POINTS_DIVISOR))
         self.totalsOverOdds = str("{0:.2f}".format(obj["odds"][2]["totalsOver"]/ODDS_DIVISOR))
         self.totalsUnderOdds = str("{0:.2f}".format(obj["odds"][2]["totalsUnder"]/ODDS_DIVISOR))
         overTotalPointText = "(O" + self.totalPoints + ")"
