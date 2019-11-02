@@ -32,7 +32,8 @@ CCY_PRECISIONS = {'BHD': 3, 'BIF': 0, 'BYR': 0, 'CLF': 4, 'CLP': 0,
                   'JOD': 3, 'JPY': 0, 'KMF': 0, 'KRW': 0, 'KWD': 3,
                   'LYD': 3, 'MGA': 1, 'MRO': 1, 'OMR': 3, 'PYG': 0,
                   'RWF': 0, 'TND': 3, 'UGX': 0, 'UYI': 0, 'VND': 0,
-                  'VUV': 0, 'XAF': 0, 'XAU': 4, 'XOF': 0, 'XPF': 0}
+                  'VUV': 0, 'XAF': 0, 'XAU': 4, 'XOF': 0, 'XPF': 0,
+                  'BTC': 8}
 
 
 class ExchangeBase(Logger):
@@ -302,9 +303,8 @@ class CoinDesk(ExchangeBase):
 class CoinGecko(ExchangeBase):
 
     async def get_rates(self, ccy):
-        json = await self.get_json('api.coingecko.com', '/api/v3/exchange_rates')
-        return dict([(ccy.upper(), Decimal(d['value']))
-                     for ccy, d in json['rates'].items()])
+        json = await self.get_json('api.coingecko.com', '/api/v3/simple/price?ids=wagerr&vs_currencies=%s'%ccy)
+        return { ccy.upper() : Decimal(json['wagerr'][ccy.lower()])}
 
     def history_ccys(self):
         # CoinGecko seems to have historical data for all ccys it supports
