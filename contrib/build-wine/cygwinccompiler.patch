@@ -1,5 +1,5 @@
-+++ c:/Python3/Lib/distutils/cygwinccompiler.py
-+++ c:/Python3/Lib/distutils/cygwinccompiler.py
++++ /opt/wine64/drive_c/Python3/Lib/distutils/cygwinccompiler.py
++++ /opt/wine64/drive_c/Python3/Lib/distutils/cygwinccompiler.py
 @@ -144,17 +144,6 @@
                               linker_so=('%s -mcygwin %s' %
                                          (self.linker_dll, shared_option)))
