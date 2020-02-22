@@ -39,8 +39,8 @@ def read_json(filename, default):
     return r
 
 
-GIT_REPO_URL = "https://github.com/spesmilo/electrum"
-GIT_REPO_ISSUES_URL = "https://github.com/spesmilo/electrum/issues"
+GIT_REPO_URL = "https://github.com/wagerrdeveloper/WagerrElectrum"
+GIT_REPO_ISSUES_URL = "https://github.com/wagerrdeveloper/WagerrElectrum/issues"
 
 
 class AbstractNet:
@@ -58,7 +58,7 @@ class BitcoinMainnet(AbstractNet):
     ADDRTYPE_P2SH = 63
     SEGWIT_HRP = "bc"
     GENESIS = "000007b9191bc7a17bfb6cedf96a8dacebb5730b498361bf26d44a9f9dcc1079"
-    DEFAULT_PORTS = {'t': '50001', 's': '50002'}
+    DEFAULT_PORTS = {'t': '31336', 's': '31337'}
     DEFAULT_SERVERS = read_json('servers.json', {})
     CHECKPOINTS = read_json('checkpoints.json', [])
 
@@ -91,7 +91,7 @@ class BitcoinTestnet(AbstractNet):
     ADDRTYPE_P2SH = 125
     SEGWIT_HRP = "tb"
     GENESIS = "00000fdc268f54ff1368703792dc046b1356e60914c2b5b6348032144bcb2de5"
-    DEFAULT_PORTS = {'t': '51001', 's': '51002'}
+    DEFAULT_PORTS = {'t': '31336', 's': '31337'}
     DEFAULT_SERVERS = read_json('servers_testnet.json', {})
     CHECKPOINTS = read_json('checkpoints_testnet.json', [])
 
