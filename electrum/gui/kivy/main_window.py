@@ -161,7 +161,7 @@ class ElectrumWindow(App):
         self.send_screen.set_URI(uri)
 
     def on_new_intent(self, intent):
-        if intent.getScheme() != 'bitcoin':
+        if intent.getScheme() != 'wagerr':
             return
         uri = intent.getDataString()
         self.set_URI(uri)
@@ -350,7 +350,7 @@ class ElectrumWindow(App):
         if is_address(data):
             self.set_URI(data)
             return
-        if data.startswith('bitcoin:'):
+        if data.startswith('wagerr:'):
             self.set_URI(data)
             return
         # try to decode transaction

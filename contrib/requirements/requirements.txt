@@ -11,3 +11,4 @@ aiohttp_socks
 certifi
 pytz
 tzlocal
+quark_hash

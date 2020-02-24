@@ -677,8 +677,10 @@ mainnet_block_explorers = {
                         {'tx': 'transaction/', 'addr': 'address/'}),
     'smartbit.com.au': ('https://www.smartbit.com.au/',
                         {'tx': 'tx/', 'addr': 'address/'}),
-    'Wagerr.com': ('https://explorer.wagerr.com/#/',
+    'explorer.wagerr.com': ('https://explorer.wagerr.com/#/',
                         {'tx': 'tx/', 'addr': 'address/'}),
+    'chainz-wagerr': ('https://chainz.cryptoid.info/wgr/',
+                        {'tx': 'tx.dws?', 'addr': 'address.dws?'}),
     'system default': ('blockchain:/',
                         {'tx': 'tx/', 'addr': 'address/'}),
 }
@@ -707,7 +709,7 @@ def block_explorer_info():
 def block_explorer(config: 'SimpleConfig') -> str:
     from . import constants
     #default_ = 'Blockstream.info'
-    default_ = 'Wagerr.com'
+    default_ = 'explorer.wagerr.com'
 
     be_key = config.get('block_explorer', default_)
     be = block_explorer_info().get(be_key)
@@ -748,8 +750,8 @@ def parse_URI(uri: str, on_pr: Callable = None, *, loop=None) -> dict:
         return {'address': uri}
 
     u = urllib.parse.urlparse(uri)
-    if u.scheme != 'bitcoin':
-        raise InvalidBitcoinURI("Not a bitcoin URI")
+    if u.scheme != 'wagerr':
+        raise InvalidBitcoinURI("Not a Wagerr URI")
     address = u.path
 
     # python for android fails to parse query
@@ -836,7 +838,7 @@ def create_bip21_uri(addr, amount_sat: Optional[int], message: Optional[str],
             raise Exception(f"illegal key for URI: {repr(k)}")
         v = urllib.parse.quote(v)
         query.append(f"{k}={v}")
-    p = urllib.parse.ParseResult(scheme='bitcoin', netloc='', path=addr, params='', query='&'.join(query), fragment='')
+    p = urllib.parse.ParseResult(scheme='wagerr', netloc='', path=addr, params='', query='&'.join(query), fragment='')
     return str(urllib.parse.urlunparse(p))
 
 
