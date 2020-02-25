@@ -25,7 +25,9 @@ class Wagerr(Coin):
 
     @classmethod
     def get_header_size_height(cls, height: int):
-        return cls.ZEROCOIN_HEADER_SIZE if height >= cls.PRE_ZEROCOIN_BLOCKS else cls.PRE_ZEROCOIN_HEADER_SIZE
+        if height in [1052605]: 
+            return cls.PRE_ZEROCOIN_HEADER_SIZE
+        return cls.ZEROCOIN_HEADER_SIZE if height >= cls.PRE_ZEROCOIN_BLOCKS  else cls.PRE_ZEROCOIN_HEADER_SIZE
 
     def check_header_size(self, header: bytes):
         size = self.get_header_size(header)
