@@ -40,7 +40,7 @@ folder.
     ```
 
     ```
-    remove quark_hash from fresh_clone/requirements/requirements.txt because we have quark_hash binary wheel package for wine build. no vc++ require.
+    remove quark_hash from fresh_clone/electrum/contrib/requirements/requirements.txt because we have quark_hash binary wheel package for wine build. no vc++ require.
     ```
 
     And then build from this directory:
